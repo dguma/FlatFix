@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/authenticateToken');
 
 // Create a new service request
 router.post('/request', authenticateToken, async (req, res) => {
-  
+  /*
   try {
     const { serviceType, location, description, images } = req.body;
 
@@ -59,12 +59,12 @@ router.post('/request', authenticateToken, async (req, res) => {
     console.error('Error creating service request:', error);
     res.status(500).json({ message: 'Failed to create service request' });
   }
-  
+  */
 });
 
 // Get available service requests for technicians
 router.get('/available', authenticateToken, async (req, res) => {
-  /*
+  
   try {
     if (req.user.userType !== 'technician') {
       return res.status(403).json({ message: 'Access denied. Technicians only.' });
@@ -80,7 +80,7 @@ router.get('/available', authenticateToken, async (req, res) => {
     console.error('Error fetching available requests:', error);
     res.status(500).json({ message: 'Failed to fetch available requests' });
   }
-  */
+  
 });
 
 // Claim a service request
