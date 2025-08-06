@@ -1,0 +1,29 @@
+{
+  "name": "flatfix",
+  "version": "1.0.0",
+  "description": "FlatFix - On-demand tire services PWA built with MERN stack and WebSockets",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "install-deps": "npm install && cd server && npm install && cd ../client && npm install",
+    "start": "cd server && npm start",
+    "test": "cd client && npm test",
+    "heroku-postbuild": "npm run install-deps && npm run build"
+  },
+  "keywords": [
+    "tire-service",
+    "pwa",
+    "mern-stack",
+    "websockets",
+    "roadside-assistance",
+    "mobile-app"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}

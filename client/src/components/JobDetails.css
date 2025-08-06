@@ -1,0 +1,434 @@
+/* Job Details Modal Styles */
+.job-details-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.job-details-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.job-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 2px solid #ecf0f1;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.job-details-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Job Overview */
+.job-overview {
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.service-info h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.job-status {
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  color: white;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status.pending {
+  background: #f39c12;
+}
+
+.status.assigned {
+  background: #3498db;
+}
+
+.status.in-progress {
+  background: #e67e22;
+}
+
+.status.completed {
+  background: #27ae60;
+}
+
+.job-pay {
+  font-weight: bold;
+  color: #27ae60;
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+}
+
+.customer-info,
+.car-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.customer-info h4,
+.car-info h4 {
+  margin: 0 0 0.75rem 0;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.25rem;
+}
+
+.customer-info p,
+.car-info p {
+  margin: 0.25rem 0;
+  color: #34495e;
+  font-size: 0.9rem;
+}
+
+/* Map Section */
+.map-section {
+  padding: 1.5rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.map-section h4 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+}
+
+/* Job Actions */
+.job-actions {
+  padding: 1.5rem;
+  border-bottom: 2px solid #ecf0f1;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.job-actions .btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.job-actions .btn.btn-success {
+  background: #27ae60;
+  color: white;
+}
+
+.job-actions .btn.btn-success:hover {
+  background: #229954;
+  transform: translateY(-1px);
+}
+
+.job-actions .btn.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.job-actions .btn.btn-primary:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.job-actions .btn.btn-warning {
+  background: #f39c12;
+  color: white;
+}
+
+.job-actions .btn.btn-warning:hover {
+  background: #e67e22;
+  transform: translateY(-1px);
+}
+
+.job-actions .btn.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.job-actions .btn.btn-danger:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+}
+
+.completion-message {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+/* Chat Section */
+.chat-section {
+  padding: 1.5rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.chat-section h4 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+}
+
+.chat-messages {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #f8f9fa;
+}
+
+.message {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  max-width: 70%;
+}
+
+.message.own {
+  background: #3498db;
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.message.other {
+  background: #ecf0f1;
+  color: #2c3e50;
+  border-bottom-left-radius: 4px;
+}
+
+.message-content {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.message-time {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+.chat-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.chat-input input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.chat-input .btn {
+  padding: 0.75rem 1.5rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.chat-input .btn:hover {
+  background: #2980b9;
+}
+
+/* Cancel Modal */
+.cancel-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.cancel-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.cancel-content h3 {
+  margin: 0 0 1rem 0;
+  color: #e74c3c;
+}
+
+.cancel-content p {
+  margin: 0 0 1rem 0;
+  color: #7f8c8d;
+}
+
+.cancel-content textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.cancel-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.cancel-actions .btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-actions .btn.btn-secondary {
+  background: #95a5a6;
+  color: white;
+}
+
+.cancel-actions .btn.btn-secondary:hover {
+  background: #7f8c8d;
+}
+
+.cancel-actions .btn.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.cancel-actions .btn.btn-danger:hover {
+  background: #c0392b;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .job-details-modal {
+    padding: 0.5rem;
+  }
+  
+  .job-details-content {
+    max-height: 95vh;
+  }
+  
+  .job-overview {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .job-actions {
+    flex-direction: column;
+  }
+  
+  .job-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .chat-input {
+    flex-direction: column;
+  }
+  
+  .chat-input .btn {
+    width: 100%;
+  }
+  
+  .cancel-actions {
+    flex-direction: column;
+  }
+}
+
+/* Animations */
+.job-details-modal {
+  animation: fadeIn 0.3s ease;
+}
+
+.job-details-content {
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

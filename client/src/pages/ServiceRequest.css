@@ -1,0 +1,148 @@
+/* Service Request Page Styles */
+.service-request-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.service-request-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.service-request-card h2 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.service-request-card p {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+.service-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.service-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.service-option {
+  cursor: pointer;
+}
+
+.service-option input[type="radio"] {
+  display: none;
+}
+
+.service-option .service-card {
+  border: 2px solid #ecf0f1;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  background: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.service-option input[type="radio"]:checked + .service-card {
+  border-color: #3498db;
+  background: #ebf3fd;
+}
+
+.service-option .service-card:hover {
+  border-color: #3498db;
+}
+
+.service-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.service-info h3 {
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.service-info p {
+  color: #7f8c8d;
+  margin-bottom: 1rem;
+}
+
+.service-price {
+  font-weight: bold;
+  color: #27ae60;
+  font-size: 1.2rem;
+}
+
+.location-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.location-input input {
+  flex: 1;
+}
+
+.location-btn {
+  white-space: nowrap;
+  padding: 0.75rem 1rem;
+}
+
+.service-summary {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #ecf0f1;
+}
+
+.service-summary h3 {
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0 0;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+@media (max-width: 768px) {
+  .service-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .location-input {
+    flex-direction: column;
+  }
+  
+  .service-request-page {
+    padding: 1rem;
+  }
+  
+  .service-request-card {
+    padding: 1.5rem;
+  }
+}
