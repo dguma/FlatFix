@@ -775,53 +775,6 @@ router.post('/send-message/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Send chat message
-router.post('/send-message/:id', authenticateToken, async (req, res) => {
-  try {
-    const { message } = req.body;
-    const request = await ServiceRequest.findById(req.params.id);
-    
-    if (!request) {
-      return res.status(404).json({ message: 'Service request not found' });
-    }
-
-    // Check if user is authorized (either customer or assigned technician)
-    const isCustomer = request.customerId.toString() === req.user.userId;
-    const isTechnician = request.technicianId && request.technicianId.toString() === req.user.userId;
-    
-    if (!isCustomer && !isTechnician) {
-      return res.status(403).json({ message: 'Unauthorized to send messages for this job' });
-    }
-
-    const newMessage = {
-      senderType: isCustomer ? 'customer' : 'technician',
-      senderId: req.user.userId,
-      message: message,
-      timestamp: new Date(),
-      isRead: false
-    };
-
-    request.chat.push(newMessage);
-    await request.save();
-
-    // Emit socket event to the other party
-    const io = req.app.get('io');
-    const recipientId = isCustomer ? request.technicianId : request.customerId;
-    
-    if (recipientId) {
-      io.to(recipientId.toString()).emit('new-chat-message', {
-        requestId: request._id,
-        message: newMessage
-      });
-    }
-
-    res.json({ message: newMessage });
-  } catch (error) {
-    console.error('Error sending message:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // Submit review
 router.post('/review/:id', authenticateToken, async (req, res) => {
   try {
