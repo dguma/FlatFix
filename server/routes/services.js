@@ -85,7 +85,7 @@ router.get('/available', authenticateToken, async (req, res) => {
 
 // Claim a service request
 router.post('/claim/:requestId', authenticateToken, async (req, res) => {
-  /*
+  
   try {
     if (req.user.userType !== 'technician') {
       return res.status(403).json({ message: 'Access denied. Technicians only.' });
@@ -117,7 +117,7 @@ router.post('/claim/:requestId', authenticateToken, async (req, res) => {
     console.error('Error claiming request:', error);
     res.status(500).json({ message: 'Failed to claim request' });
   }
-  */
+  
 });
 
 // Get customer's service requests
