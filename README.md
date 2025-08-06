@@ -223,3 +223,9 @@ For support, email support@flatfix.com or create an issue in the repository.
 ---
 
 **FlatFix** - Fixing tires, one call at a time! 🚗💨
+
+## 🌐 Live Demo
+
+The app is deployed and available at: **https://flatfix-roadside-app-193f7aaa4704.herokuapp.com/**
+
+Test the real-time features with multiple devices/browsers!
