@@ -259,7 +259,7 @@ router.post('/send-message/:id', authenticateToken, async (req, res) => {
 
 // Cancel service request
 router.post('/cancel/:id', authenticateToken, async (req, res) => {
-  /*
+  
   try {
     const request = await ServiceRequest.findById(req.params.id);
     
@@ -300,7 +300,7 @@ router.post('/cancel/:id', authenticateToken, async (req, res) => {
     console.error('Error cancelling request:', error);
     res.status(500).json({ message: 'Server error' });
   }
-  */
+  
 });
 
 module.exports = router;
