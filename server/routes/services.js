@@ -2,25 +2,7 @@ const express = require('express');
 const ServiceRequest = require('../models/ServiceRequest');
 const User = require('../models/User');
 const router = express.Router();
-
-// Middleware to verify JWT token
-const jwt = require('jsonwebtoken');
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
-    req.user = user;
-    next();
-  });
-};
+const authenticateToken = require('../middleware/authenticateToken');
 
 // Create a new service request
 router.post('/request', authenticateToken, async (req, res) => {
