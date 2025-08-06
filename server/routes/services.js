@@ -142,7 +142,7 @@ router.get('/my-requests', authenticateToken, async (req, res) => {
 
 // Get technician's jobs
 router.get('/my-jobs', authenticateToken, async (req, res) => {
-  /*
+  
   try {
     if (req.user.userType !== 'technician') {
       return res.status(403).json({ message: 'Access denied. Technicians only.' });
@@ -157,7 +157,7 @@ router.get('/my-jobs', authenticateToken, async (req, res) => {
     console.error('Error fetching technician jobs:', error);
     res.status(500).json({ message: 'Failed to fetch jobs' });
   }
-  */
+  
 });
 
 // Update service status
