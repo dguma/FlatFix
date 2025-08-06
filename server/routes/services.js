@@ -122,7 +122,7 @@ router.post('/claim/:requestId', authenticateToken, async (req, res) => {
 
 // Get customer's service requests
 router.get('/my-requests', authenticateToken, async (req, res) => {
-  /*
+  
   try {
     if (req.user.userType !== 'customer') {
       return res.status(403).json({ message: 'Access denied. Customers only.' });
@@ -137,7 +137,7 @@ router.get('/my-requests', authenticateToken, async (req, res) => {
     console.error('Error fetching customer requests:', error);
     res.status(500).json({ message: 'Failed to fetch requests' });
   }
-  */
+  
 });
 
 // Get technician's jobs
