@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useSocket } from '../contexts/SocketContext';
 import './ServiceRequest.css';
 
 const ServiceRequest: React.FC = () => {
@@ -9,16 +8,13 @@ const ServiceRequest: React.FC = () => {
     serviceType: 'air-inflation',
     description: '',
     location: {
-      address: '',
-      latitude: 0,
-      longitude: 0
+      address: ''
     }
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [locationError, setLocationError] = useState('');
   
   const { token } = useAuth();
-  const { socket } = useSocket();
   const navigate = useNavigate();
 
   const serviceTypes = [
@@ -26,65 +22,21 @@ const ServiceRequest: React.FC = () => {
       value: 'air-inflation',
       label: 'Air Inflation',
       description: 'Quick tire inflation service',
-      price: 20,
       icon: '💨'
     },
     {
       value: 'spare-replacement',
       label: 'Spare Tire Replacement',
       description: 'Replace flat tire with spare and inflate',
-      price: 35,
       icon: '🔧'
     },
     {
       value: 'shop-pickup',
       label: 'Shop Coordination',
       description: 'Help coordinate with local tire shops',
-      price: 45,
       icon: '🏪'
     }
   ];
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // Reverse geocoding to get address
-          try {
-            const response = await fetch(
-              `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=YOUR_OPENCAGE_API_KEY`
-            );
-            const data = await response.json();
-            const address = data.results[0]?.formatted || `${latitude}, ${longitude}`;
-            
-            setFormData(prev => ({
-              ...prev,
-              location: { latitude, longitude, address }
-            }));
-            setLocationError('');
-          } catch (error) {
-            // Fallback to coordinates if geocoding fails
-            setFormData(prev => ({
-              ...prev,
-              location: { 
-                latitude, 
-                longitude, 
-                address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-              }
-            }));
-          }
-        },
-        (error) => {
-          setLocationError('Unable to get your location. Please enter manually.');
-          console.error('Geolocation error:', error);
-        }
-      );
-    } else {
-      setLocationError('Geolocation is not supported by this browser.');
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +49,7 @@ const ServiceRequest: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/services/request', {
+      const response = await fetch('/api/services/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,13 +59,6 @@ const ServiceRequest: React.FC = () => {
       });
 
       if (response.ok) {
-        const serviceRequest = await response.json();
-        
-        // Emit new service request to technicians via socket
-        if (socket) {
-          socket.emit('new-service-request', serviceRequest.serviceRequest);
-        }
-
         navigate('/customer-dashboard');
       } else {
         throw new Error('Failed to create service request');
@@ -125,8 +70,6 @@ const ServiceRequest: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
-  const selectedService = serviceTypes.find(s => s.value === formData.serviceType);
 
   return (
     <div className="service-request-page">
@@ -153,7 +96,6 @@ const ServiceRequest: React.FC = () => {
                       <div className="service-info">
                         <h3>{service.label}</h3>
                         <p>{service.description}</p>
-                        <div className="service-price">${service.price}</div>
                       </div>
                     </div>
                   </label>
@@ -183,29 +125,11 @@ const ServiceRequest: React.FC = () => {
                     ...prev,
                     location: { ...prev.location, address: e.target.value }
                   }))}
-                  placeholder="Enter your address or use current location"
+                  placeholder="Enter your address"
                   required
                 />
-                <button 
-                  type="button" 
-                  onClick={getCurrentLocation}
-                  className="btn btn-secondary location-btn"
-                >
-                  📍 Use Current Location
-                </button>
               </div>
               {locationError && <div className="error-message">{locationError}</div>}
-            </div>
-
-            <div className="service-summary">
-              <h3>Service Summary</h3>
-              <div className="summary-item">
-                <span>Service: {selectedService?.label}</span>
-                <span>${selectedService?.price}</span>
-              </div>
-              <div className="summary-total">
-                <span>Total: ${selectedService?.price}</span>
-              </div>
             </div>
 
             <button 

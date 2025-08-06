@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { SocketProvider } from './contexts/SocketContext';
 import Header from './components/Header';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -18,54 +17,52 @@ import './App.css';
 function App() {
   return (
     <AuthProvider>
-      <SocketProvider>
-        <Router>
-          <div className="App">
-            <Header />
-            <main className="main-content">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route 
-                  path="/change-password" 
-                  element={
-                    <ProtectedRoute>
-                      <ChangePassword />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/customer-dashboard" 
-                  element={
-                    <ProtectedRoute userType="customer">
-                      <CustomerDashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/technician-dashboard" 
-                  element={
-                    <ProtectedRoute userType="technician">
-                      <TechnicianDashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/request-service" 
-                  element={
-                    <ProtectedRoute userType="customer">
-                      <ServiceRequest />
-                    </ProtectedRoute>
-                  } 
-                />
-              </Routes>
-            </main>
-          </div>
-        </Router>
-      </SocketProvider>
+      <Router>
+        <div className="App">
+          <Header />
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route 
+                path="/change-password" 
+                element={
+                  <ProtectedRoute>
+                    <ChangePassword />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/customer-dashboard" 
+                element={
+                  <ProtectedRoute userType="customer">
+                    <CustomerDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/technician-dashboard" 
+                element={
+                  <ProtectedRoute userType="technician">
+                    <TechnicianDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/request-service" 
+                element={
+                  <ProtectedRoute userType="customer">
+                    <ServiceRequest />
+                  </ProtectedRoute>
+                } 
+              />
+            </Routes>
+          </main>
+        </div>
+      </Router>
     </AuthProvider>
   );
 }

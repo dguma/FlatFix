@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: {
+  username: {
     type: String,
     required: true,
     trim: true
@@ -22,49 +22,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  userType: {
+  role: {
     type: String,
-    enum: ['customer', 'technician'],
-    required: true
-  },
-  location: {
-    latitude: Number,
-    longitude: Number,
-    address: String
-  },
-  // Technician specific fields
-  isAvailable: {
-    type: Boolean,
-    default: true
-  },
-  rating: {
-    type: Number,
-    default: 5.0,
-    min: 1,
-    max: 5
-  },
-  completedJobs: {
-    type: Number,
-    default: 0
-  },
-  vehicleInfo: {
-    make: String,
-    model: String,
-    year: Number,
-    licensePlate: String
-  },
-  // Customer specific fields
-  paymentMethods: [{
-    type: {
-      type: String,
-      enum: ['card', 'paypal']
-    },
-    last4: String,
-    isDefault: Boolean
-  }],
-  // Password reset fields
-  resetPasswordToken: String,
-  resetPasswordExpiry: Date
+    enum: ['customer', 'technician', 'admin'],
+    default: 'customer'
+  }
 }, {
   timestamps: true
 });
