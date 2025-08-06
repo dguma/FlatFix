@@ -210,7 +210,7 @@ router.patch('/status/:requestId', authenticateToken, async (req, res) => {
 
 // Send chat message
 router.post('/send-message/:id', authenticateToken, async (req, res) => {
-  /*
+  
   try {
     const { message } = req.body;
     const request = await ServiceRequest.findById(req.params.id);
@@ -254,7 +254,7 @@ router.post('/send-message/:id', authenticateToken, async (req, res) => {
     console.error('Error sending message:', error);
     res.status(500).json({ message: 'Server error' });
   }
-  */
+  
 });
 
 // Cancel service request
