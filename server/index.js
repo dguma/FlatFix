@@ -1,4 +1,14 @@
 const express = require('express');
+
+// Top-level error logging for Heroku troubleshooting
+process.on('uncaughtException', err => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+process.on('unhandledRejection', err => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
+});
 const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
