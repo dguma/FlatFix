@@ -68,7 +68,7 @@ router.get('/technicians/nearby', authenticateToken, async (req, res) => {
 // Admin route to delete a user and cancel their jobs
 router.delete('/:userId', authenticateToken, async (req, res) => {
     // First, check if the authenticated user is an admin
-    if (req.user.role !== 'admin') {
+    if (req.user.userType !== 'admin') {
         return res.status(403).json({ message: 'Forbidden: Only admins can delete users.' });
     }
 

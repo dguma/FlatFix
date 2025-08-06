@@ -32,13 +32,13 @@ router.post('/request', authenticateToken, async (req, res) => {
 // Get available service requests for technicians
 router.get('/available', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'technician') {
+    if (req.user.userType !== 'technician') {
       return res.status(403).json({ message: 'Access denied. Technicians only.' });
     }
 
     const availableRequests = await ServiceRequest.find({ 
       status: 'pending'
-    }).populate('customerId', 'username email');
+    }).populate('customerId', 'name email');
 
     res.json(availableRequests);
   } catch (error) {
@@ -50,7 +50,7 @@ router.get('/available', authenticateToken, async (req, res) => {
 // Claim a service request
 router.post('/claim/:requestId', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'technician') {
+    if (req.user.userType !== 'technician') {
       return res.status(403).json({ message: 'Access denied. Technicians only.' });
     }
 
@@ -77,12 +77,12 @@ router.post('/claim/:requestId', authenticateToken, async (req, res) => {
 // Get customer's service requests
 router.get('/my-requests', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'customer') {
+    if (req.user.userType !== 'customer') {
       return res.status(403).json({ message: 'Access denied. Customers only.' });
     }
 
     const requests = await ServiceRequest.find({ customerId: req.user.userId })
-      .populate('technicianId', 'username email')
+      .populate('technicianId', 'name email')
       .sort({ createdAt: -1 });
 
     res.json(requests);
@@ -95,12 +95,12 @@ router.get('/my-requests', authenticateToken, async (req, res) => {
 // Get technician's jobs
 router.get('/my-jobs', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'technician') {
+    if (req.user.userType !== 'technician') {
       return res.status(403).json({ message: 'Access denied. Technicians only.' });
     }
 
     const jobs = await ServiceRequest.find({ technicianId: req.user.userId })
-      .populate('customerId', 'username email')
+      .populate('customerId', 'name email')
       .sort({ createdAt: -1 });
 
     res.json(jobs);

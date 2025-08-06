@@ -31,15 +31,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-
-// Serve static files from the React app build directory and handle React Router
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  });
-}
-
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/flatfix';
 mongoose.connect(MONGODB_URI)
@@ -47,7 +38,6 @@ mongoose.connect(MONGODB_URI)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
-// Import and use route files
 const authRoutes = require('./routes/auth');
 const serviceRoutes = require('./routes/services');
 const userRoutes = require('./routes/users');
@@ -56,8 +46,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/users', userRoutes);
 
-// Serve React app for all other routes (catch-all handler)
+// Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  // Handle React routing, return all requests to React app
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
   });
