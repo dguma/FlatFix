@@ -162,7 +162,7 @@ router.get('/my-jobs', authenticateToken, async (req, res) => {
 
 // Update service status
 router.patch('/status/:requestId', authenticateToken, async (req, res) => {
-  /*
+  
   try {
     const { status } = req.body;
     const request = await ServiceRequest.findById(req.params.requestId);
@@ -205,7 +205,7 @@ router.patch('/status/:requestId', authenticateToken, async (req, res) => {
     console.error('Error updating status:', error);
     res.status(500).json({ message: 'Failed to update status' });
   }
-  */
+  
 });
 
 // Send chat message
