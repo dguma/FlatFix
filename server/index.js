@@ -43,8 +43,13 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
-// Handle CORS preflight for all routes
-app.options('*', cors(corsOptions));
+// Safe generic OPTIONS handler (avoid '*' route with Express 5)
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 app.use(express.json());
 
 // Optional: clearer response when CORS blocks an origin
