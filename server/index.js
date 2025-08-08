@@ -43,7 +43,17 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
+// Handle CORS preflight for all routes
+app.options('*', cors(corsOptions));
 app.use(express.json());
+
+// Optional: clearer response when CORS blocks an origin
+app.use((err, req, res, next) => {
+  if (err && err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ message: 'CORS: origin not allowed', origin: req.headers.origin || null });
+  }
+  return next(err);
+});
 
 // MongoDB connection (require env var in production)
 const isProd = process.env.NODE_ENV === 'production';
