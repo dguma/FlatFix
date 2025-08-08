@@ -6,26 +6,37 @@ require('dotenv').config();
 const app = express();
 
 // Dynamic CORS configuration for production and development
-const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://flat-fix.vercel.app').replace(/\/$/, '');
+const normalize = (url) => (url || '').replace(/\/$/, '');
+const FRONTEND_URL_DEFAULT = 'https://flat-fix.vercel.app';
+const FRONTEND_URL = normalize(process.env.FRONTEND_URL || FRONTEND_URL_DEFAULT);
+const FRONTEND_URLS = (process.env.FRONTEND_URLS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
+  .map(normalize);
+
+const STATIC_ALLOWED = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://localhost:3000',
+  FRONTEND_URL,
+  ...FRONTEND_URLS,
+].map(normalize));
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (curl, server-to-server)
     if (!origin) return callback(null, true);
 
-    const normalize = (url) => (url || '').replace(/\/$/, '');
     const requestOrigin = normalize(origin);
 
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'https://localhost:3000',
-      FRONTEND_URL
-    ].map(normalize);
+    // Allow any Vercel preview or production domain
+    const allowVercel = requestOrigin.endsWith('.vercel.app');
 
-    if (allowedOrigins.includes(requestOrigin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    if (STATIC_ALLOWED.has(requestOrigin) || allowVercel) {
+      return callback(null, true);
     }
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 };
@@ -70,7 +81,7 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
-// Backend-only: do not serve React from Render
+// Backend-only root
 app.get('/', (req, res) => {
   res.json({ message: 'FlatFix API (Render) running. Frontend is on Vercel.' });
 });
