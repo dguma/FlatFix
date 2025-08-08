@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE } from '../config';
 import './JobDetails.css';
 
 interface JobDetailsProps {
@@ -22,7 +23,7 @@ const JobDetails: React.FC<JobDetailsProps> = ({ jobId, onClose, onJobUpdate }) 
 
   const handleUpdateStatus = async (status: string) => {
     try {
-      const response = await fetch(`/api/services/status/${jobId}`, {
+      const response = await fetch(`${API_BASE || ''}/api/services/status/${jobId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

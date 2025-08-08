@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE } from '../config';
 import './Auth.css';
 
 const ChangePassword: React.FC = () => {
@@ -31,7 +32,7 @@ const ChangePassword: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+      const response = await fetch(`${API_BASE || ''}/api/auth/change-password`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

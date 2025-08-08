@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import CustomerServiceView from '../components/CustomerServiceView';
+import { API_BASE } from '../config';
 import './Dashboard.css';
 
 interface ServiceRequest {
@@ -25,7 +26,7 @@ const CustomerDashboard: React.FC = () => {
 
   const fetchMyRequests = useCallback(async () => {
     try {
-      const response = await fetch('/api/services/my-requests', {
+      const response = await fetch(`${API_BASE || ''}/api/services/my-requests`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

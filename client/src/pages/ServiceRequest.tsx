@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE } from '../config';
 import './ServiceRequest.css';
 
 const ServiceRequest: React.FC = () => {
@@ -49,7 +50,7 @@ const ServiceRequest: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/services/request', {
+      const response = await fetch(`${API_BASE || ''}/api/services/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

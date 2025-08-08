@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import JobDetails from '../components/JobDetails';
 import './Dashboard.css';
+import { API_BASE } from '../config';
 
 interface ServiceRequest {
   _id: string;
@@ -26,7 +27,7 @@ const TechnicianDashboard: React.FC = () => {
 
   const fetchAvailableJobs = useCallback(async () => {
     try {
-      const response = await fetch('/api/services/available', {
+      const response = await fetch(`${API_BASE || ''}/api/services/available`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -43,7 +44,7 @@ const TechnicianDashboard: React.FC = () => {
 
   const fetchMyJobs = useCallback(async () => {
     try {
-      const response = await fetch('/api/services/my-jobs', {
+      const response = await fetch(`${API_BASE || ''}/api/services/my-jobs`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -67,7 +68,7 @@ const TechnicianDashboard: React.FC = () => {
 
   const handleClaimJob = async (jobId: string) => {
     try {
-      const response = await fetch(`/api/services/claim/${jobId}`, {
+      const response = await fetch(`${API_BASE || ''}/api/services/claim/${jobId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
