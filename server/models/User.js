@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  username: {
+  // Use "name" to match routes/auth.js
+  name: {
     type: String,
     required: true,
     trim: true
@@ -22,11 +23,25 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  role: {
+  // Use userType to match routes/auth.js and downstream role checks
+  userType: {
     type: String,
     enum: ['customer', 'technician', 'admin'],
     default: 'customer'
-  }
+  },
+  // Technician-specific fields
+  isAvailable: {
+    type: Boolean,
+    default: false
+  },
+  vehicleInfo: {
+    make: { type: String },
+    model: { type: String },
+    licensePlate: { type: String }
+  },
+  // Password reset fields
+  resetPasswordToken: { type: String },
+  resetPasswordExpiry: { type: Date }
 }, {
   timestamps: true
 });
