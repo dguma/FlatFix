@@ -1,0 +1,222 @@
+/* Map Component Styles */
+.map-container {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.map {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.tracking-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(46, 204, 113, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.tracking-dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Job tracking metrics */
+.job-metrics {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.metric-item {
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: #f8f9fa;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  display: block;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-item.distance {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.metric-item.distance .metric-value,
+.metric-item.distance .metric-label {
+  color: white;
+}
+
+.metric-item.time {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+.metric-item.time .metric-value,
+.metric-item.time .metric-label {
+  color: white;
+}
+
+.metric-item.earnings {
+  background: linear-gradient(135deg, #27ae60, #229954);
+  color: white;
+}
+
+.metric-item.earnings .metric-value,
+.metric-item.earnings .metric-label {
+  color: white;
+}
+
+/* Location controls */
+.location-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.location-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.location-btn:hover {
+  background: #2980b9;
+}
+
+.location-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.location-btn.danger {
+  background: #e74c3c;
+}
+
+.location-btn.danger:hover {
+  background: #c0392b;
+}
+
+.location-btn.success {
+  background: #27ae60;
+}
+
+.location-btn.success:hover {
+  background: #229954;
+}
+
+/* Status indicators */
+.job-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.job-status-indicator.tracking {
+  background: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.job-status-indicator.en-route {
+  background: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.job-status-indicator.arrived {
+  background: rgba(241, 196, 15, 0.1);
+  color: #f1c40f;
+  border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.job-status-indicator.completed {
+  background: rgba(39, 174, 96, 0.1);
+  color: #27ae60;
+  border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .location-controls {
+    flex-direction: column;
+  }
+  
+  .location-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .tracking-indicator {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+}
