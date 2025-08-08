@@ -1,6 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { API_BASE } from '../config';
 
+// Safe JSON helpers to avoid crashes when API returns empty body or HTML
+const isJsonResponse = (res: Response) => (res.headers.get('content-type') || '').includes('application/json');
+const parseJsonSafe = async (res: Response) => {
+  try {
+    const text = await res.text();
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+};
+
 interface User {
   id: string;
   userId?: string; // Add this for backward compatibility
@@ -40,15 +52,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       });
 
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        // Token is invalid
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
+      if (response.ok && isJsonResponse(response)) {
+        const userData = await parseJsonSafe(response);
+        if (userData) {
+          setUser(userData);
+          return;
+        }
       }
+      // Not OK or not JSON or empty body -> treat as auth failure
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
       localStorage.removeItem('token');
@@ -78,14 +92,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         body: JSON.stringify({ email, password })
       });
 
-      const data = await response.json();
+      const data = isJsonResponse(response) ? await parseJsonSafe(response) : null;
 
-      if (response.ok) {
+      if (response.ok && data && data.token) {
         setToken(data.token);
         setUser(data.user);
         localStorage.setItem('token', data.token);
       } else {
-        throw new Error(data.message || 'Login failed');
+        const message = (data && data.message) || (API_BASE ? 'Login failed' : 'API not configured. Set REACT_APP_API_URL in Vercel to your backend URL.');
+        throw new Error(message);
       }
     } catch (error) {
       throw error;
@@ -102,14 +117,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         body: JSON.stringify(userData)
       });
 
-      const data = await response.json();
+      const data = isJsonResponse(response) ? await parseJsonSafe(response) : null;
 
-      if (response.ok) {
+      if (response.ok && data && data.token) {
         setToken(data.token);
         setUser(data.user);
         localStorage.setItem('token', data.token);
       } else {
-        throw new Error(data.message || 'Registration failed');
+        const message = (data && data.message) || (API_BASE ? 'Registration failed' : 'API not configured. Set REACT_APP_API_URL in Vercel to your backend URL.');
+        throw new Error(message);
       }
     } catch (error) {
       throw error;
