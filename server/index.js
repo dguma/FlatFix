@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -46,19 +45,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/users', userRoutes);
 
-// Serve static files from React app in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  // Handle React routing, return all requests to React app (avoid '*' with Express 5)
-  app.use((req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.json({ message: 'FlatFix API Server Running' });
-  });
-}
+// Backend-only: do not serve React from Render
+app.get('/', (req, res) => {
+  res.json({ message: 'FlatFix API (Render) running. Frontend is on Vercel.' });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
