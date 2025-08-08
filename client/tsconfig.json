@@ -22,5 +22,11 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "src/contexts/SocketContext.tsx",
+    "src/components/CustomerTracking.tsx",
+    "src/components/JobTracking.tsx",
+    "src/components/MapComponent.tsx"
   ]
 }
