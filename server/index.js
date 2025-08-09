@@ -60,6 +60,14 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
+// Body parser (JSON) syntax error handler to avoid HTML 400 responses
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ message: 'Invalid JSON payload', details: err.message });
+  }
+  next(err);
+});
+
 // MongoDB connection (require env var in production)
 const isProd = process.env.NODE_ENV === 'production';
 let mongoUri = process.env.MONGODB_URI || '';
@@ -99,6 +107,14 @@ app.get('/api/health', (req, res) => {
 // Backend-only root
 app.get('/', (req, res) => {
   res.json({ message: 'FlatFix API (Render) running. Frontend is on Vercel.' });
+});
+
+// Global fallback error handler (ensures JSON, not HTML)
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  console.error('Unhandled error:', err);
+  const status = err.status || 500;
+  res.status(status).json({ message: err.message || 'Server error' });
 });
 
 const PORT = process.env.PORT || 5000;
