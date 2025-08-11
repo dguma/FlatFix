@@ -3,9 +3,33 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
 const authenticateToken = require('../middleware/authenticateToken');
+const validate = require('../middleware/validate');
+const Joi = require('joi');
+
+const registerSchema = {
+  body: Joi.object({
+    name: Joi.string().min(2).max(80).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    phone: Joi.string().min(6).max(30).optional(),
+    userType: Joi.string().valid('customer','technician','admin').optional(),
+    vehicleInfo: Joi.object({
+      make: Joi.string().optional(),
+      model: Joi.string().optional(),
+      licensePlate: Joi.string().optional()
+    }).optional()
+  })
+};
+
+const loginSchema = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required()
+  })
+};
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', validate(registerSchema), async (req, res) => {
   try {
     const { name, email, password, phone, userType, vehicleInfo } = req.body;
 
@@ -55,7 +79,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
 

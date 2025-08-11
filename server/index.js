@@ -1,9 +1,22 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const { v4: uuidv4 } = require('uuid');
+const winston = require('winston');
 require('dotenv').config();
 
 const app = express();
+
+// Winston logger setup
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [new winston.transports.Console()]
+});
 
 // Dynamic CORS configuration for production and development
 const normalize = (url) => (url || '').replace(/\/$/, '');
@@ -51,6 +64,28 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json());
+
+// Correlation / Request ID middleware
+app.use((req, res, next) => {
+  const id = req.headers['x-request-id'] || uuidv4();
+  req.id = id;
+  res.setHeader('X-Request-Id', id);
+  logger.info({ msg: 'request:start', id, method: req.method, url: req.originalUrl });
+  res.on('finish', () => {
+    logger.info({ msg: 'request:finish', id, status: res.statusCode });
+  });
+  next();
+});
+
+// Rate limit auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' }
+});
+app.use('/api/auth', authLimiter);
 
 // Optional: clearer response when CORS blocks an origin
 app.use((err, req, res, next) => {
@@ -119,5 +154,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info({ msg: 'server:start', port: PORT });
 });

@@ -3,6 +3,7 @@ const User = require('../models/User');
 const ServiceRequest = require('../models/ServiceRequest');
 const router = express.Router();
 const authenticateToken = require('../middleware/authenticateToken');
+// (Future) Could add validation for location & availability updates.
 
 // Update user location
 router.patch('/location', authenticateToken, async (req, res) => {

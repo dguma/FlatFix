@@ -3,9 +3,30 @@ const ServiceRequest = require('../models/ServiceRequest');
 const User = require('../models/User');
 const router = express.Router();
 const authenticateToken = require('../middleware/authenticateToken');
+const validate = require('../middleware/validate');
+const Joi = require('joi');
+
+const createRequestSchema = {
+  body: Joi.object({
+    serviceType: Joi.string().valid('air-inflation','spare-replacement','shop-pickup').required(),
+    location: Joi.object({
+      address: Joi.string().min(3).required()
+    }).required(),
+    description: Joi.string().min(5).max(500).required()
+  })
+};
+
+const statusUpdateSchema = {
+  params: Joi.object({
+    requestId: Joi.string().hex().length(24).required()
+  }),
+  body: Joi.object({
+    status: Joi.string().valid('in-progress','completed','cancelled').required()
+  })
+};
 
 // Create a new service request
-router.post('/request', authenticateToken, async (req, res) => {
+router.post('/request', authenticateToken, validate(createRequestSchema), async (req, res) => {
   try {
     const { serviceType, location, description } = req.body;
 
@@ -111,7 +132,7 @@ router.get('/my-jobs', authenticateToken, async (req, res) => {
 });
 
 // Update service status
-router.patch('/status/:requestId', authenticateToken, async (req, res) => {
+router.patch('/status/:requestId', authenticateToken, validate(statusUpdateSchema), async (req, res) => {
   try {
     const { status } = req.body;
     const request = await ServiceRequest.findById(req.params.requestId);
