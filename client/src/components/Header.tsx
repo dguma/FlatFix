@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Header.css';
 
 const Header: React.FC = () => {
   const { user, logout, toggleAvailability } = useAuth();
   const [open, setOpen] = useState(false);
+  const location = useLocation();
   const toggle = () => setOpen(o => !o);
   const close = () => setOpen(false);
 
@@ -30,60 +31,54 @@ const Header: React.FC = () => {
         </div>
         <nav id="primary-nav" className={`nav ${open ? 'open' : ''}`} role="navigation" aria-label="Primary"> 
           {user ? (
-            <>
-              <span className="welcome">Hi {user.name.split(' ')[0]}</span>
-              <Link to={user.userType === 'customer' ? '/customer-dashboard' : '/technician-dashboard'} className="nav-link" onClick={close}>
-                Dashboard
-              </Link>
-              <Link to="/profile" className="nav-link" onClick={close}>
-                Profile
-              </Link>
-              {user.userType === 'technician' && (
-                <button
-                  className="nav-link"
-                  style={{ textAlign:'left' }}
-                  onClick={async () => { await toggleAvailability(); }}
-                >
-                  {user.isAvailable ? 'Go Offline' : 'Go Online'}
-                </button>
-              )}
-              <Link to="/change-password" className="nav-link" onClick={close}>
-                Change Password
-              </Link>
-              <button onClick={() => { logout(); close(); }} className="btn btn-outline full-width">
-                Logout
-              </button>
-            </>
+            <ul className="nav-items">
+              <li className="nav-meta">
+                <div className="nav-user">
+                  <Link to="/profile" onClick={close} className="avatar-mini" aria-label="Profile">
+                    {user.avatarUrl ? <img src={user.avatarUrl} alt="avatar" /> : <span>{user.name.charAt(0)}</span>}
+                  </Link>
+                  <Link to="/profile" onClick={close} className={`welcome-name ${location.pathname === '/profile' ? 'active' : ''}`} aria-current={location.pathname === '/profile' ? 'page' : undefined}>{user.name.split(' ')[0]}</Link>
+                  {user.userType === 'technician' && (
+                    <button
+                      type="button"
+                      className={`status-chip ${user.isAvailable ? 'online' : 'offline'}`}
+                      onClick={async () => { await toggleAvailability(); }}
+                      aria-pressed={!!user.isAvailable}
+                    >
+                      <span className="dot" /> {user.isAvailable ? 'Online' : 'Offline'}
+                    </button>
+                  )}
+                </div>
+              </li>
+              <li>
+                <Link
+                  to={user.userType === 'customer' ? '/customer-dashboard' : '/technician-dashboard'}
+                  onClick={close}
+                  className={`nav-link-btn ${location.pathname.includes('dashboard') ? 'active' : ''}`}
+                >Dashboard</Link>
+              </li>
+              {/* Removed redundant standalone Profile link; avatar/name act as profile entry */}
+              <li>
+                <Link to="/change-password" onClick={close} className={`nav-link-btn ${location.pathname === '/change-password' ? 'active' : ''}`}>Password</Link>
+              </li>
+              <li className="nav-divider" aria-hidden="true" />
+              <li>
+                <button onClick={() => { logout(); close(); }} className="nav-link-btn danger">Logout</button>
+              </li>
+            </ul>
           ) : (
-            <>
-              <Link to="/login" className="nav-link" onClick={close}>
-                Login
-              </Link>
-              <Link to="/register" className="btn btn-primary full-width" onClick={close}>
-                Sign Up
-              </Link>
-            </>
+            <ul className="nav-items">
+              <li>
+                <Link to="/login" className={`nav-link-btn ${location.pathname === '/login' ? 'active' : ''}`} onClick={close}>Login</Link>
+              </li>
+              <li>
+                <Link to="/register" className="nav-link-btn primary" onClick={close}>Sign Up</Link>
+              </li>
+            </ul>
           )}
         </nav>
         {open && <div className="backdrop" onClick={close} />}
       </div>
-      {user && (
-        <div className="mobile-action-bar" role="toolbar" aria-label="Quick actions">
-          <Link to={user.userType === 'customer' ? '/customer-dashboard' : '/technician-dashboard'} className="mab-link">🏠<span>Dashboard</span></Link>
-          {user.userType === 'technician' && (
-            <button
-              className="mab-link"
-              onClick={() => toggleAvailability()}
-              aria-pressed={!!user.isAvailable}
-            >
-              {user.isAvailable ? '🟢' : '⚪'}
-              <span>{user.isAvailable ? 'Online' : 'Offline'}</span>
-            </button>
-          )}
-          <Link to="/profile" className="mab-link">👤<span>Profile</span></Link>
-          <button className="mab-link" onClick={() => logout()}>🚪<span>Logout</span></button>
-        </div>
-      )}
     </header>
   );
 };
