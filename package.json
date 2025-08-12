@@ -4,10 +4,11 @@
   "description": "FlatFix - On-demand tire services frontend application",
   "main": "index.js",
   "scripts": {
-    "dev": "npm start --prefix client",
-    "build": "npm install --prefix client && npm run build --prefix client",
-    "start": "npm start --prefix client",
-    "test": "npm test --prefix client"
+  "dev": "npm start --prefix client",
+  "build": "npm install --prefix client && npm run build --prefix client",
+  "start": "npm start --prefix client",
+  "test": "npm test --prefix client",
+  "postinstall": "npm --prefix server install && npm --prefix client install"
   },
   "keywords": [
     "tire-service",

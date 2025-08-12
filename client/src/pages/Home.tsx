@@ -24,10 +24,21 @@ const Home: React.FC = () => {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
+  const PIXABAY = 'https://cdn.pixabay.com/photo/2015/05/31/12/08/reparing-791413_1280.jpg';
+  const UNSPLASH_FALLBACK = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=60';
+  const [heroSrc, setHeroSrc] = useState<string>(PIXABAY);
+
   return (
     <div className="home">
       <section className="hero" style={{ position:'relative', overflow:'hidden' }}>
-  <div style={{position:'absolute', inset:0, zIndex:0, backgroundImage:"url(https://cdn.pixabay.com/photo/2015/05/31/12/08/reparing-791413_1280.jpg)", backgroundSize:'cover', backgroundPosition:'center', backgroundRepeat:'no-repeat', filter:'brightness(0.55)'}} />
+          <img
+            src={heroSrc}
+            alt="roadside assistance"
+            onError={() => setHeroSrc(UNSPLASH_FALLBACK)}
+            loading="eager"
+            decoding="async"
+            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', zIndex:0, filter:'brightness(0.55)' }}
+          />
         <div className="container" style={{ position:'relative', zIndex:1 }}>
           <h1 className="hero-title">
             Tire Problems? We'll Fix It!
