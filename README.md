@@ -1,231 +1,166 @@
-# 🔧 FlatFix - On-Demand Tire Services PWA
+# 🔧 FlatFix - On‑Demand Tire Services PWA
 
-FlatFix is a Progressive Web App (PWA) that connects customers with professional tire technicians for on-demand tire services. Built with the MERN stack and WebSockets for real-time communication.
+FlatFix is a MERN PWA for roadside tire help. It runs a React TypeScript client on Vercel and a hardened Express API on Render with MongoDB Atlas.
+
+Key updates in this version:
+- No WebSockets/maps; realtime UX via lightweight polling
+- GPS capture + OpenStreetMap (Nominatim + Overpass) shop suggestions
+- Unified pricing with $20 base across services and jumpstart cap
+- Profile page with avatar presets, technician equipment, and online toggle
+- Customer request details modal and shop‑coordination estimates
 
 ## 🚗 Features
 
-### For Customers
-- **Emergency Tire Help**: Request immediate assistance for tire problems
-- **Real-time Tracking**: See technician location and estimated arrival time
-- **Multiple Service Types**: 
-  - Air inflation ($20)
-  - Spare tire replacement + air ($35) 
-  - Local shop coordination ($45)
-- **PWA Capabilities**: Install on mobile device, works offline
-- **Secure Payments**: Pay for services (customers pay shops directly for parts)
+### For customers
+- Request help with GPS, pick a nearby shop (optional)
+- Service types: air inflation, spare replacement, shop coordination, lockout, jumpstart, fuel delivery
+- Live estimates: shop coordination uses round‑trip miles; jumpstart caps at $45
+- View your requests and details (pricing breakdown, selected shop)
 
-### For Technicians
-- **Job Marketplace**: First-come-first-serve job claiming system
-- **Real-time Notifications**: Get notified of new service requests instantly
-- **Location Services**: GPS tracking for customer visibility
-- **Availability Toggle**: Control when you're accepting jobs
-- **Payment Processing**: Automatic payment collection for services
+### For technicians
+- Job marketplace (first‑come, first‑serve) with polling refresh
+- Online/offline toggle and equipment flags (lockout kit, jump starter, fuel can)
+- Only see jobs you can perform based on equipment
 
-### Technical Features
-- **Real-time Communication**: WebSocket integration with Socket.io
-- **PWA**: Service workers, offline capability, installable
-- **Responsive Design**: Mobile-first, works on all devices
-- **Authentication**: JWT-based secure authentication
-- **Database**: MongoDB with Mongoose ODM
-- **Geolocation**: GPS integration for precise location services
+### Technical
+- React + TypeScript PWA, mobile‑first
+- Express 5 API with CORS allowlist, rate limiting, Joi validation, Winston logging
+- JWT auth (login/register/profile) and consistent JSON error handling
+- OSM geosearch for nearby shops (no keys)
 
-## 🛠 Tech Stack
+## 🧾 Pricing
+- Base fee: $20 for all services
+- Spare replacement: +$15 service
+- Shop coordination: +$30 labor + $1.50/mi (round‑trip miles), customer pays the shop directly for tires
+- Lockout: +$25 service
+- Jumpstart: $20 base includes first jump; up to 2 extra attempts at $12.50 each; total capped at $45
+- Fuel delivery: +$10/gal (max 2)
 
-**Frontend:**
-- React 18 with TypeScript
-- Socket.io-client for real-time features
-- React Router for navigation
-- Progressive Web App capabilities
-- Responsive CSS with mobile-first design
+## 🛠 Tech stack
 
-**Backend:**
-- Node.js with Express.js
-- Socket.io for WebSocket connections
-- MongoDB with Mongoose
-- JWT authentication
-- RESTful API design
+Frontend
+- React 19 + TypeScript, CRA
+- React Router
+- PWA with service worker
 
-**Additional Tools:**
-- Google Maps API for location services
-- BCrypt for password hashing
-- CORS for cross-origin requests
-- Nodemon for development
+Backend
+- Node 18 + Express 5
+- MongoDB (Mongoose)
+- JWT auth, Joi validation, express‑rate‑limit, Winston
 
-## 📱 Service Workflow
+Infra
+- Client: Vercel (rewrites /api to API)
+- API: Render
 
-1. **Customer Request**: Customer posts "need help" with GPS location
-2. **Broadcast**: System broadcasts request to all available technicians
-3. **Claiming**: Technicians compete to claim jobs (first-come-first-serve)
-4. **Approval**: Customer can approve or decline assigned technician
-5. **Service**: Real-time tracking during service delivery
-6. **Payment**: Secure payment processing for service fees
-7. **Completion**: Service completion and rating system
+## 🌐 Live URLs
+- App (Vercel): https://flat-fix.vercel.app
+- API (Render): https://flatfix.onrender.com
 
-## 🚀 Quick Start
+## 🚀 Quick start (local)
 
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (local or MongoDB Atlas)
-- npm or yarn package manager
+Prereqs: Node 18+, npm 9+, MongoDB Atlas (or local Mongo), a JWT secret
 
-### Installation
-
-1. **Clone and setup:**
+1) Clone
 ```bash
-git clone <repository-url>
+git clone https://github.com/dguma/FlatFix.git
 cd FlatFix
-npm run install-deps
 ```
 
-2. **Environment Configuration:**
-
-Create `server/.env` file:
+2) Server env (server/.env)
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/flatfix
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>/flatfix?retryWrites=true&w=majority
+JWT_SECRET=replace_me
+# Optional CORS for Vercel preview/prod (comma‑separated)
+FRONTEND_URLS=https://flat-fix.vercel.app
 ```
 
-Create `client/.env` file:
-```env
-REACT_APP_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-REACT_APP_API_URL=http://localhost:5000
-```
-
-**Note:** You'll need to get a Google Maps API key from the [Google Cloud Console](https://console.cloud.google.com/) and enable the following APIs:
-- Maps JavaScript API
-- Geocoding API
-- Distance Matrix API
-- Directions API
-
-3. **Start Development:**
+3) Install deps
 ```bash
-# Run both frontend and backend concurrently
-npm run dev
-
-# Or run separately:
-npm run server  # Backend on http://localhost:5000
-npm run client  # Frontend on http://localhost:3000
+npm --prefix server install
+npm --prefix client install
 ```
 
-### Production Build
+4) Run
 ```bash
-npm run build
-npm start
+# Terminal A (API)
+npm run dev --prefix server
+
+# Terminal B (client)
+npm start --prefix client
 ```
+Client: http://localhost:3000  API: http://localhost:5000
 
-## 📂 Project Structure
-
+## 📂 Structure
 ```
 FlatFix/
-├── client/                 # React frontend
-│   ├── public/            # PWA manifest, icons
-│   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── contexts/      # React contexts (Auth, Socket)
-│   │   ├── pages/         # Page components
-│   │   └── ...
-├── server/                # Express backend
-│   ├── models/           # MongoDB schemas
-│   ├── routes/           # API routes
-│   ├── index.js          # Server entry point
-│   └── .env              # Environment variables
-├── package.json          # Root package.json with scripts
-└── README.md
+├─ client/                      # React app (CRA)
+│  ├─ public/                   # index.html, manifest, icons
+│  └─ src/
+│     ├─ components/            # Header, ProtectedRoute, CustomerServiceView, etc.
+│     ├─ pages/                 # Home, ServiceRequest, Dashboards, Profile, etc.
+│     ├─ contexts/              # AuthContext, SocketContext (placeholder)
+│     └─ hooks/                 # useGeolocation
+├─ server/                      # Express API
+│  ├─ routes/                   # auth, services, profile, users
+│  ├─ models/                   # User, ServiceRequest
+│  ├─ middleware/               # authenticateToken, validate
+│  └─ index.js                  # API bootstrap
+├─ vercel.json                  # /api rewrites to Render
+└─ README.md
 ```
 
-## 🔌 API Endpoints
+## 🔌 API (high‑level)
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/profile` - Get user profile
+Auth
+- POST /api/auth/register
+- POST /api/auth/login
+- GET  /api/auth/profile
 
-### Services
-- `POST /api/services/request` - Create service request
-- `GET /api/services/available` - Get available jobs (technicians)
-- `POST /api/services/claim/:requestId` - Claim a job
-- `GET /api/services/my-requests` - Customer's requests
-- `GET /api/services/my-jobs` - Technician's jobs
-- `PATCH /api/services/status/:requestId` - Update service status
+Services
+- POST /api/services/request
+- GET  /api/services/available           (tech)
+- POST /api/services/claim/:requestId    (tech)
+- GET  /api/services/my-requests         (customer)
+- GET  /api/services/my-jobs             (tech)
+- PATCH /api/services/status/:requestId  (tech)
+- GET  /api/services/:requestId          (owner/assigned)
+- GET  /api/services/shops/suggestions   (OSM: postal or lat/lon)
 
-### Users
-- `PATCH /api/users/location` - Update user location
-- `PATCH /api/users/availability` - Toggle technician availability
-- `GET /api/users/technicians/nearby` - Find nearby technicians
+Profile
+- GET  /api/profile/me
+- PATCH /api/profile/avatar               { avatarUrl }
+- PATCH /api/profile/equipment            { lockoutKit?, jumpStarter?, fuelCan? }
+- PATCH /api/profile/online               { online: boolean }
+- GET  /api/profile/technicians/online-count
 
-## 🌐 WebSocket Events
+Notes
+- Shop‑pickup estimates: base + labor + per‑mile × round‑trip miles; tires are paid directly to the shop
+- Jumpstart estimate caps at $45
 
-### Customer Events
-- `join-customer` - Join customer room
-- `new-service-request` - Broadcast new request
-- `approve-technician` - Approve/reject technician
-
-### Technician Events
-- `join-technician` - Join technician room
-- `claim-request` - Claim a service request
-- `location-update` - Send location updates
-- `service-completed` - Mark service as completed
-
-## 💳 Payment Structure
-
-- **Base Service Fee**: $20 for technician to come to location
-- **Air Inflation**: $20 total (base fee only)
-- **Spare Replacement**: $35 total ($20 base + $15 service)
-- **Shop Coordination**: $45 total ($20 base + $25 coordination)
-
-*Note: Customers pay tire shops directly for any tire purchases*
-
-## 📱 PWA Features
-
-- **Installable**: Can be installed on mobile devices
-- **Offline Capability**: Core functionality works offline
-- **Push Notifications**: Real-time updates even when app is closed
-- **Responsive**: Optimized for mobile and desktop
-- **Fast**: Service worker caching for instant loading
-
-## 🔧 Development
-
-### Running Tests
+## 🧪 Tests
+Server uses Jest + Supertest.
 ```bash
-npm test
+npm test --prefix server
 ```
 
-### Building for Production
-```bash
-npm run build
-```
+## 🏗️ Deploy
 
-### Environment Variables
-Required environment variables in `server/.env`:
-- `PORT` - Server port (default: 5000)
-- `MONGODB_URI` - MongoDB connection string
-- `JWT_SECRET` - Secret for JWT token signing
-- `GOOGLE_MAPS_API_KEY` - Google Maps API key for location services
+Vercel (client)
+- vercel.json rewrites /api/* to the Render API
 
-## 🤝 Contributing
+Render (API)
+- Node 18, install server deps (Joi in production deps)
+- Set env vars (MONGODB_URI, JWT_SECRET, FRONTEND_URLS)
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 📱 PWA
+- Installable (CRA service worker)
+- Responsive design
+- Hero image uses CDN with fallback for reliability in production
 
 ## 📄 License
-
-This project is licensed under the ISC License.
-
-## 🆘 Support
-
-For support, email support@flatfix.com or create an issue in the repository.
+ISC
 
 ---
 
-**FlatFix** - Fixing tires, one call at a time! 🚗💨
-
-## 🌐 Live Demo
-
-The app is deployed and available at: **https://flatfix-roadside-app-193f7aaa4704.herokuapp.com/**
-
-Test the real-time features with multiple devices/browsers!
+FlatFix — fixing tires, one call at a time 🚗💨
