@@ -283,7 +283,7 @@ router.get('/shops/suggestions', async (req, res) => {
       center = { lat: latParam, lon: lonParam };
     } else if (postal) {
       const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(postal)}`, {
-        headers: { 'User-Agent': 'FlatFix/1.0 (Contact: support@flatfix.app)' }
+  headers: { 'User-Agent': 'ZipFix.ai/1.0 (Contact: support@zipfix.ai)' }
       });
       const geo = await geoResp.json();
       if (!Array.isArray(geo) || !geo.length) return res.json({ postal, radius: radiusMiles, suggestions: [] });
@@ -303,7 +303,7 @@ router.get('/shops/suggestions', async (req, res) => {
     `;
     const overResp = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'FlatFix/1.0 (Contact: support@flatfix.app)' },
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'ZipFix.ai/1.0 (Contact: support@zipfix.ai)' },
       body: new URLSearchParams({ data: overpassQuery }).toString()
     });
     const over = await overResp.json();

@@ -1,4 +1,4 @@
-# FlatFix Heroku Deployment Guide
+# ZipFix.ai Heroku Deployment Guide
 
 ## Prerequisites
 1. Heroku CLI installed
@@ -11,7 +11,7 @@ Create the following environment variables in your Heroku app:
 
 ### Required Variables:
 ```
-MONGODB_URI=mongodb+srv://dylanguma:nD1rbjlS2vYK6fH0@cluster0.camyr2k.mongodb.net/flatfix?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>/zipfix?retryWrites=true&w=majority
 JWT_SECRET=your_secure_random_jwt_secret
 NODE_ENV=production
 ```
@@ -36,10 +36,10 @@ REACT_APP_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 heroku login
 
 # Create a new Heroku app
-heroku create your-flatfix-app-name
+heroku create your-zipfix-app-name
 
 # Set environment variables
-heroku config:set MONGODB_URI="mongodb+srv://dylanguma:nD1rbjlS2vYK6fH0@cluster0.camyr2k.mongodb.net/flatfix?retryWrites=true&w=majority"
+heroku config:set MONGODB_URI="mongodb+srv://<user>:<pass>@<cluster>/zipfix?retryWrites=true&w=majority"
 heroku config:set JWT_SECRET="your_secure_random_string"
 heroku config:set NODE_ENV="production"
 

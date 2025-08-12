@@ -102,7 +102,7 @@ const CustomerDashboard: React.FC = () => {
                   <p><strong>Location:</strong> {request.location.address}</p>
                   {request.serviceType === 'shop-pickup' && (
                     <div style={{ fontSize: '.9rem', marginTop: '.25rem' }}>
-                      You pay your chosen shop directly for the tire. Your FlatFix payment covers technician labor and round-trip distance.
+                      You pay your chosen shop directly for the tire. Your ZipFix.ai payment covers technician labor and round-trip distance.
                     </div>
                   )}
                   <p><strong>Requested:</strong> {new Date(request.createdAt).toLocaleString()}</p>

@@ -205,7 +205,7 @@ router.post('/forgot-password', async (req, res) => {
         await transporter.sendMail({
           from: SMTP_FROM,
           to: email,
-          subject: 'FlatFix Password Reset',
+          subject: 'ZipFix.ai Password Reset',
           text: `You requested a password reset. Use the link below (valid 15 minutes):\n${resetLink}`,
           html: `<p>You requested a password reset. This link is valid for 15 minutes.</p><p><a href="${resetLink}">${resetLink}</a></p>`
         });

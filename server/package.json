@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "zipfix-ai-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "ZipFix.ai backend API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

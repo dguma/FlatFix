@@ -1,9 +1,9 @@
-# FlatFix - Tire Service PWA Instructions
+# ZipFix.ai - Tire Service PWA Instructions
 
 <!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 
 ## Project Overview
-FlatFix is a Progressive Web App (PWA) for on-demand tire services built with the MERN stack and WebSockets.
+ZipFix.ai is a Progressive Web App (PWA) for on-demand tire services built with the MERN stack and WebSockets.
 
 ## Architecture
 - **Frontend**: React TypeScript PWA with service workers

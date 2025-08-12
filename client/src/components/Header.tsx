@@ -26,7 +26,7 @@ const Header: React.FC = () => {
             <span />
           </button>
           <Link to="/" className="logo" onClick={close}>
-            🔧 FlatFix
+            ⚡ ZipFix.ai
           </Link>
         </div>
         <nav id="primary-nav" className={`nav ${open ? 'open' : ''}`} role="navigation" aria-label="Primary"> 

@@ -1,6 +1,6 @@
-# 🔧 FlatFix - On‑Demand Tire Services PWA
+# ⚡ ZipFix.ai - On‑Demand Tire Services PWA
 
-FlatFix is a MERN PWA for roadside tire help. It runs a React TypeScript client on Vercel and a hardened Express API on Render with MongoDB Atlas.
+ZipFix.ai (formerly FlatFix) is a MERN PWA for roadside tire help. It runs a React TypeScript client on Vercel and a hardened Express API on Render with MongoDB Atlas.
 
 Key updates in this version:
 - No WebSockets/maps; realtime UX via lightweight polling
@@ -56,8 +56,8 @@ Infra
  - Email: SMTP (set SMTP_* env vars) for password reset
 
 ## 🌐 Live URLs
-- App (Vercel): https://flat-fix.vercel.app
-- API (Render): https://flatfix.onrender.com
+- App (Vercel): https://zipfix-ai.vercel.app (previous: flat-fix.vercel.app)
+- API (Render): https://zipfix.onrender.com (previous: flatfix.onrender.com)
 
 ## 🚀 Quick start (local)
 
@@ -66,13 +66,13 @@ Prereqs: Node 18+, npm 9+, MongoDB Atlas (or local Mongo), a JWT secret
 1) Clone
 ```bash
 git clone https://github.com/dguma/FlatFix.git
-cd FlatFix
+cd FlatFix  # repository folder name unchanged
 ```
 
 2) Server env (server/.env)
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>/flatfix?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>/zipfix?retryWrites=true&w=majority
 JWT_SECRET=replace_me
 # Optional CORS for Vercel preview/prod (comma‑separated)
 FRONTEND_URLS=https://flat-fix.vercel.app
@@ -96,7 +96,7 @@ Client: http://localhost:3000  API: http://localhost:5000
 
 ## 📂 Structure
 ```
-FlatFix/
+ZipFix.ai/
 ├─ client/                      # React app (CRA)
 │  ├─ public/                   # index.html, manifest, icons
 │  └─ src/
@@ -167,4 +167,4 @@ ISC
 
 ---
 
-FlatFix — fixing tires, one call at a time 🚗💨
+ZipFix.ai — fixing tires, one call at a time 🚗⚡

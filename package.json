@@ -1,7 +1,7 @@
 {
-  "name": "flatfix",
+  "name": "zipfix-ai",
   "version": "1.0.0",
-  "description": "FlatFix - On-demand tire services frontend application",
+  "description": "ZipFix.ai - On-demand tire services frontend application",
   "main": "index.js",
   "scripts": {
   "dev": "npm start --prefix client",
