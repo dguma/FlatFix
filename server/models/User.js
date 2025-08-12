@@ -39,6 +39,20 @@ const userSchema = new mongoose.Schema({
     model: { type: String },
     licensePlate: { type: String }
   },
+  // Profile avatar (small images / data URL or hosted link)
+  avatarUrl: { type: String },
+  // Equipment a technician has on-hand to unlock additional service types
+  equipment: {
+    lockoutKit: { type: Boolean, default: false },
+    jumpStarter: { type: Boolean, default: false },
+    fuelCan: { type: Boolean, default: false }
+  },
+  // Optional location (populated when user shares GPS). Not indexed yet; add geo index later if needed.
+  location: {
+    latitude: { type: Number },
+    longitude: { type: Number },
+    address: { type: String }
+  },
   // Password reset fields
   resetPasswordToken: { type: String },
   resetPasswordExpiry: { type: Date }

@@ -12,8 +12,18 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   serviceType: {
     type: String,
-    enum: ['air-inflation', 'spare-replacement', 'shop-pickup'],
+    enum: ['air-inflation', 'spare-replacement', 'shop-pickup', 'lockout', 'jumpstart', 'fuel-delivery'],
     required: true
+  },
+  pricing: {
+    base: { type: Number },
+    service: { type: Number },
+  perUnit: { type: Number }, // e.g., per gallon
+  maxUnits: { type: Number },
+  perMile: { type: Number },
+  estimatedMiles: { type: Number },
+  estimate: { type: Number },
+  currency: { type: String, default: 'USD' }
   },
   status: {
     type: String,
@@ -24,11 +34,21 @@ const serviceRequestSchema = new mongoose.Schema({
     address: {
       type: String,
       required: true
-    }
+  },
+  latitude: { type: Number },
+  longitude: { type: Number }
   },
   description: {
     type: String,
     required: true
+  },
+  selectedShop: {
+    name: { type: String },
+    phone: { type: String },
+    address: { type: String },
+    latitude: { type: Number },
+    longitude: { type: Number },
+    distanceMiles: { type: Number }
   }
 }, {
   timestamps: true

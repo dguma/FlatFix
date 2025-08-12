@@ -129,10 +129,12 @@ mongoose.connect(mongoUri)
 const authRoutes = require('./routes/auth');
 const serviceRoutes = require('./routes/services');
 const userRoutes = require('./routes/users');
+const profileRoutes = require('./routes/profile');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Health check to verify frontend-backend connectivity
 app.get('/api/health', (req, res) => {

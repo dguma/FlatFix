@@ -11,6 +11,13 @@ import ChangePassword from './pages/ChangePassword';
 import CustomerDashboard from './pages/CustomerDashboard';
 import TechnicianDashboard from './pages/TechnicianDashboard';
 import ServiceRequest from './pages/ServiceRequest';
+import ServiceSelection from './pages/ServiceSelection';
+import ReadinessCheck from './pages/ReadinessCheck';
+import BookingConfirmation from './pages/BookingConfirmation';
+import JobVerification from './pages/JobVerification';
+import TechnicianSignUp from './pages/TechnicianSignUp';
+import TechnicianDashboardRealtime from './pages/TechnicianDashboardRealtime';
+import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -27,6 +34,11 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/service-selection" element={<ServiceSelection />} />
+              <Route path="/readiness-check" element={<ReadinessCheck />} />
+              <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+              <Route path="/job-verification" element={<JobVerification />} />
+              <Route path="/technician-signup" element={<TechnicianSignUp />} />
               <Route 
                 path="/change-password" 
                 element={
@@ -48,6 +60,22 @@ function App() {
                 element={
                   <ProtectedRoute userType="technician">
                     <TechnicianDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/technician-dashboard-realtime" 
+                element={
+                  <ProtectedRoute userType="technician">
+                    <TechnicianDashboardRealtime />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 } 
               />

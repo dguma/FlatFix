@@ -26,6 +26,12 @@ interface User {
     model: string;
     licensePlate: string;
   };
+  avatarUrl?: string;
+  equipment?: {
+    lockoutKit?: boolean;
+    jumpStarter?: boolean;
+    fuelCan?: boolean;
+  };
 }
 
 interface AuthContextType {
