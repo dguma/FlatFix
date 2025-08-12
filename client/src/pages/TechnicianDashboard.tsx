@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import JobDetails from '../components/JobDetails';
 import './Dashboard.css';
@@ -23,7 +24,8 @@ const TechnicianDashboard: React.FC = () => {
   const [myJobs, setMyJobs] = useState<ServiceRequest[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
+  const { token, user, toggleAvailability } = useAuth();
+  const isOnline = !!user?.isAvailable;
 
   const fetchAvailableJobs = useCallback(async () => {
     try {
@@ -62,9 +64,25 @@ const TechnicianDashboard: React.FC = () => {
   }, [token]);
 
   useEffect(() => {
-    fetchAvailableJobs();
+    if (isOnline) {
+      fetchAvailableJobs();
+    } else {
+      setAvailableJobs([]);
+    }
     fetchMyJobs();
-  }, [fetchAvailableJobs, fetchMyJobs]);
+  }, [fetchAvailableJobs, fetchMyJobs, isOnline]);
+
+  const handleToggleAvailability = async () => {
+    const prev = isOnline;
+    const ok = await toggleAvailability();
+    if (!ok) {
+      // revert UI (user state not updated) – in current implementation toggleAvailability updates state only on success
+      console.warn('Availability toggle failed');
+    } else if (!prev) {
+      // Went online -> refresh jobs immediately
+      fetchAvailableJobs();
+    }
+  };
 
   const handleClaimJob = async (jobId: string) => {
     try {
@@ -92,15 +110,46 @@ const TechnicianDashboard: React.FC = () => {
   return (
     <div className="dashboard">
       <div className="container">
-        <div className="dashboard-header">
-          <h1>Technician Dashboard</h1>
+        <div className="dashboard-header" style={{ flexDirection:'column', alignItems:'stretch', gap:'1rem' }}>
+          <div className="dashboard-topbar">
+            <h1>Technician Dashboard</h1>
+            <div className="topbar-right">
+              <button
+                type="button"
+                className={`availability-pill ${isOnline ? 'online' : 'offline'}`}
+                onClick={handleToggleAvailability}
+                aria-pressed={isOnline}
+                aria-label={isOnline ? 'Go Offline' : 'Go Online'}
+              >
+                <span className={`status-dot ${isOnline ? 'on' : 'off'}`}></span>
+                {isOnline ? 'Online' : 'Offline'}
+              </button>
+              <Link to="/profile" className="avatar-chip" aria-label="Profile">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="avatar" />
+                ) : (
+                  <span>{user?.name?.charAt(0) || 'P'}</span>
+                )}
+              </Link>
+            </div>
+          </div>
+          {!isOnline && (
+            <div className="availability-hint">
+              <strong>You are currently offline.</strong> Switch to <button onClick={handleToggleAvailability} className="link-btn">Online</button> to view and claim new jobs.
+            </div>
+          )}
         </div>
 
         <div className="dashboard-sections">
           <section className="jobs-section">
-            <h2>Available Jobs ({availableJobs.length})</h2>
-            {availableJobs.length === 0 ? (
-              <p>No available jobs at the moment.</p>
+            <h2 style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'.75rem' }}>
+              <span>Available Jobs {isOnline && `(${availableJobs.length})`}</span>
+              {isOnline && <button className="btn btn-outline" style={{ padding:'0.4rem .9rem' }} onClick={fetchAvailableJobs}>↻ Refresh</button>}
+            </h2>
+            {!isOnline ? (
+              <p style={{ margin:'0.25rem 0 0' }}>Go online to see available jobs.</p>
+            ) : availableJobs.length === 0 ? (
+              <p>No available jobs right now. Keep the app open — new requests will appear here.</p>
             ) : (
               <div className="jobs-list">
                 {availableJobs.map(job => (
@@ -115,7 +164,7 @@ const TechnicianDashboard: React.FC = () => {
                     <p><strong>Location:</strong> {job.location.address}</p>
                     <p><strong>Description:</strong> {job.description}</p>
                     <p><strong>Customer:</strong> {job.customerId.username}</p>
-                    <button 
+                    <button
                       onClick={() => handleClaimJob(job._id)}
                       className="btn btn-primary"
                     >
