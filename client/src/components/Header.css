@@ -161,6 +161,20 @@
 }
 
 /* (Removed mobile persistent action bar) */
+/* Compact mobile nav row */
+@media (max-width: 760px) {
+  .mobile-nav-row { position: fixed; bottom: 0; left: 0; right: 0; background:#2c3e50; display:flex; justify-content:space-around; align-items:stretch; padding:.4rem .25rem calc(env(safe-area-inset-bottom,0) + .35rem); border-top:1px solid rgba(255,255,255,0.15); z-index:1002; }
+  body { padding-bottom:64px; }
+  .mn-link { flex:1; background:none; border:none; color:#ecf0f1; text-decoration:none; font-size:.75rem; display:flex; flex-direction:column; align-items:center; gap:.2rem; padding:.25rem 0; font-weight:500; position:relative; }
+  .mn-link span { font-size:.65rem; opacity:.85; }
+  .mn-link.active { background:rgba(255,255,255,0.12); border-radius:8px; }
+  .mn-link:active { transform:scale(.94); }
+  .mn-link.online { color:#2ecc71; }
+  .mn-link.offline { color:#e67e22; }
+  .mn-link.danger { color:#ffb3b3; }
+  .mn-link.danger:active { color:#ff9999; }
+  .mn-link:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+}
 
 /* Hamburger button */
 .hamburger {

@@ -79,6 +79,29 @@ const Header: React.FC = () => {
         </nav>
         {open && <div className="backdrop" onClick={close} />}
       </div>
+      {user && (
+        <div className="mobile-nav-row" role="navigation" aria-label="Mobile quick navigation">
+          <Link
+            to={user.userType === 'customer' ? '/customer-dashboard' : '/technician-dashboard'}
+            className={`mn-link ${location.pathname.includes('dashboard') ? 'active' : ''}`}
+          >🏠<span>Dashboard</span></Link>
+          {user.userType === 'technician' && (
+            <button
+              className={`mn-link ${user.isAvailable ? 'online' : 'offline'}`}
+              onClick={() => toggleAvailability()}
+              aria-pressed={!!user.isAvailable}
+            >{user.isAvailable ? '🟢' : '⚪'}<span>{user.isAvailable ? 'Online' : 'Offline'}</span></button>
+          )}
+          <Link
+            to="/profile"
+            className={`mn-link ${location.pathname === '/profile' ? 'active' : ''}`}
+          >👤<span>Profile</span></Link>
+          <button
+            className="mn-link danger"
+            onClick={() => logout()}
+          >🚪<span>Logout</span></button>
+        </div>
+      )}
     </header>
   );
 };
