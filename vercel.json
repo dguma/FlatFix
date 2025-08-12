@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://flatfix.onrender.com/api/$1"
-    }
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "https://flatfix.onrender.com/api/$1" },
+    { "src": "/(.*)", "dest": "/build/$1" }
   ]
 }
