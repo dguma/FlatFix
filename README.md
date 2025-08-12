@@ -8,6 +8,8 @@ Key updates in this version:
 - Unified pricing with $20 base across services and jumpstart cap
 - Profile page with avatar presets, technician equipment, and online toggle
 - Customer request details modal and shop‑coordination estimates
+ - Password reset email delivery via configurable SMTP (fallback logs reset link)
+ - Mobile persistent action bar with technician Online/Offline quick toggle
 
 ## 🚗 Features
 
@@ -51,6 +53,7 @@ Backend
 Infra
 - Client: Vercel (rewrites /api to API)
 - API: Render
+ - Email: SMTP (set SMTP_* env vars) for password reset
 
 ## 🌐 Live URLs
 - App (Vercel): https://flat-fix.vercel.app
@@ -152,6 +155,7 @@ Vercel (client)
 Render (API)
 - Node 18, install server deps (Joi in production deps)
 - Set env vars (MONGODB_URI, JWT_SECRET, FRONTEND_URLS)
+ - (Optional) SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, SMTP_FROM for password reset emails
 
 ## 📱 PWA
 - Installable (CRA service worker)

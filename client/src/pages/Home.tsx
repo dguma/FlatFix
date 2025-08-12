@@ -8,21 +8,28 @@ const Home: React.FC = () => {
   const { user } = useAuth();
   const [onlineTechs, setOnlineTechs] = useState<number | null>(null);
 
+  const fetchCount = async () => {
+    try {
+      const res = await fetch(`${API_BASE || ''}/api/profile/technicians/online-count`);
+      if (res.ok) {
+        const data = await res.json();
+        setOnlineTechs(data.onlineTechnicians);
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     let cancelled = false;
-    const fetchCount = async () => {
-      try {
-        const res = await fetch(`${API_BASE || ''}/api/profile/technicians/online-count`);
-        if (res.ok) {
-          const data = await res.json();
-          if (!cancelled) setOnlineTechs(data.onlineTechnicians);
-        }
-      } catch {}
-    };
-    fetchCount();
-    const id = setInterval(fetchCount, 15000);
+    const wrapped = async () => { if (!cancelled) await fetchCount(); };
+    wrapped();
+    const id = setInterval(wrapped, 15000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
+
+  // When user's availability changes (technician toggles) refresh count quickly
+  useEffect(() => {
+    fetchCount();
+  }, [user?.isAvailable]);
 
   const PIXABAY = 'https://cdn.pixabay.com/photo/2015/05/31/12/08/reparing-791413_1280.jpg';
   const UNSPLASH_FALLBACK = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=60';

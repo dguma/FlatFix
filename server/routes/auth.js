@@ -162,7 +162,7 @@ router.patch('/change-password', authenticateToken, async (req, res) => {
   }
 });
 
-// Forgot password - generate reset token
+// Forgot password - generate reset token + send email
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -186,14 +186,44 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpiry = resetTokenExpiry;
     await user.save();
 
-    // In production, send email here
-    // For development, log the reset link
-    console.log(`Password reset link for ${email}: http://localhost:3000/reset-password?token=${resetToken}`);
+    const frontendBase = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendBase.replace(/\/$/, '')}/reset-password?token=${resetToken}`;
 
-    res.json({ 
-      message: 'If an account with that email exists, a password reset link has been sent.',
-      // Remove this in production - only for development
-      resetLink: `http://localhost:3000/reset-password?token=${resetToken}`
+    // Attempt to send email via nodemailer if transport is configured via env
+    // Supported simple config: SMTP_HOST, SMTP_PORT, SMTP_SECURE ("true"/"false"), SMTP_USER, SMTP_PASS, SMTP_FROM
+    let emailSent = false;
+    try {
+      const { SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
+      if (SMTP_HOST && SMTP_PORT && SMTP_FROM) {
+        const nodemailer = require('nodemailer');
+        const transporter = nodemailer.createTransport({
+          host: SMTP_HOST,
+            port: Number(SMTP_PORT),
+            secure: String(SMTP_SECURE).toLowerCase() === 'true',
+            auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined
+        });
+        await transporter.sendMail({
+          from: SMTP_FROM,
+          to: email,
+          subject: 'FlatFix Password Reset',
+          text: `You requested a password reset. Use the link below (valid 15 minutes):\n${resetLink}`,
+          html: `<p>You requested a password reset. This link is valid for 15 minutes.</p><p><a href="${resetLink}">${resetLink}</a></p>`
+        });
+        emailSent = true;
+      } else {
+        console.warn('SMTP env vars not fully set; skipping email send.');
+      }
+    } catch (e) {
+      console.error('Failed to send reset email:', e.message);
+    }
+
+    if (!emailSent) {
+      // Fallback: log link so developer can still access it
+      console.log(`Password reset link (fallback log) for ${email}: ${resetLink}`);
+    }
+
+    res.json({
+      message: 'If an account with that email exists, a password reset link has been sent.'
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to process password reset', error: error.message });

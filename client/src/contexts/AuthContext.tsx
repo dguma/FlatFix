@@ -40,6 +40,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
   logout: () => void;
+  toggleAvailability: (next?: boolean) => Promise<boolean>;
   isLoading: boolean;
 }
 
@@ -144,12 +145,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('token');
   };
 
+  const toggleAvailability = async (next?: boolean) => {
+    if (!token || !user || user.userType !== 'technician') return false;
+    const desired = typeof next === 'boolean' ? next : !user.isAvailable;
+    try {
+      const res = await fetch(`${API_BASE || ''}/api/profile/online`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ online: desired })
+      });
+      if (res.ok) {
+        setUser({ ...user, isAvailable: desired });
+        return true;
+      }
+    } catch (e) {
+      console.error('toggleAvailability failed', e);
+    }
+    return false;
+  };
+
   const value = {
     user,
     token,
     login,
     register,
     logout,
+  toggleAvailability,
     isLoading
   };
 
