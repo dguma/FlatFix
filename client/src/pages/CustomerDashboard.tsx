@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import CustomerServiceView from '../components/CustomerServiceView';
@@ -43,8 +43,15 @@ const CustomerDashboard: React.FC = () => {
     }
   }, [token]);
 
+  useEffect(() => { fetchMyRequests(); }, [fetchMyRequests]);
+
+  // Polling for status changes (driver assignment/progress)
+  const pollRef = useRef<number | null>(null);
   useEffect(() => {
-    fetchMyRequests();
+    if (pollRef.current) window.clearInterval(pollRef.current);
+    const runner = () => fetchMyRequests();
+    pollRef.current = window.setInterval(runner, 12000); // 12s cadence
+    return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
   }, [fetchMyRequests]);
 
   const getStatusColor = (status: string) => {

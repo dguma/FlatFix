@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import JobDetails from '../components/JobDetails';
@@ -63,14 +63,26 @@ const TechnicianDashboard: React.FC = () => {
     }
   }, [token]);
 
+  // Initial + availability-change fetch
   useEffect(() => {
-    if (isOnline) {
-      fetchAvailableJobs();
-    } else {
-      setAvailableJobs([]);
-    }
+    if (isOnline) fetchAvailableJobs(); else setAvailableJobs([]);
     fetchMyJobs();
   }, [fetchAvailableJobs, fetchMyJobs, isOnline]);
+
+  // Polling to keep statuses fresh (similar to online count pattern)
+  const pollRef = useRef<number | null>(null);
+  useEffect(() => {
+    // Clear any existing
+    if (pollRef.current) window.clearInterval(pollRef.current);
+    // Only poll if online or has active jobs
+    const runner = async () => {
+      if (isOnline) fetchAvailableJobs();
+      fetchMyJobs();
+    };
+    runner();
+    pollRef.current = window.setInterval(runner, 10000); // 10s cadence
+    return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
+  }, [isOnline, fetchAvailableJobs, fetchMyJobs]);
 
   const handleToggleAvailability = async () => {
     const prev = isOnline;
