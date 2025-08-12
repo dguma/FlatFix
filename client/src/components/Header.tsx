@@ -12,9 +12,22 @@ const Header: React.FC = () => {
 
   // Add a class to body so we can apply JS-enhanced styles (progressive enhancement)
   useEffect(() => {
-    document.body.classList.add('has-js');
-    return () => { document.body.classList.remove('has-js'); };
-  }, []);
+    document.body.classList.add('hasjs');
+    const applyMobileNavClass = () => {
+      if (window.innerWidth <= 760 && user) {
+        document.body.classList.add('with-mobile-nav');
+      } else {
+        document.body.classList.remove('with-mobile-nav');
+      }
+    };
+    applyMobileNavClass();
+    window.addEventListener('resize', applyMobileNavClass);
+    return () => {
+      document.body.classList.remove('hasjs');
+      document.body.classList.remove('with-mobile-nav');
+      window.removeEventListener('resize', applyMobileNavClass);
+    };
+  }, [user]);
 
   return (
     <header className="header">
@@ -29,6 +42,14 @@ const Header: React.FC = () => {
             ⚡ ZipFix.ai
           </Link>
         </div>
+        {!user && (
+          <Link
+            to="/login"
+            onClick={close}
+            className="nav-link-btn mobile-auth-btn"
+            aria-label="Sign in or create an account"
+          >Sign In / Up</Link>
+        )}
         <nav id="primary-nav" className={`nav ${open ? 'open' : ''}`} role="navigation" aria-label="Primary"> 
           {user ? (
             <ul className="nav-items">
@@ -84,22 +105,22 @@ const Header: React.FC = () => {
           <Link
             to={user.userType === 'customer' ? '/customer-dashboard' : '/technician-dashboard'}
             className={`mn-link ${location.pathname.includes('dashboard') ? 'active' : ''}`}
-          >🏠<span>Dashboard</span></Link>
+          ><span>Dashboard</span></Link>
           {user.userType === 'technician' && (
             <button
               className={`mn-link ${user.isAvailable ? 'online' : 'offline'}`}
               onClick={() => toggleAvailability()}
               aria-pressed={!!user.isAvailable}
-            >{user.isAvailable ? '🟢' : '⚪'}<span>{user.isAvailable ? 'Online' : 'Offline'}</span></button>
+            ><span>{user.isAvailable ? 'Online' : 'Offline'}</span></button>
           )}
           <Link
             to="/profile"
             className={`mn-link ${location.pathname === '/profile' ? 'active' : ''}`}
-          >👤<span>Profile</span></Link>
+          ><span>Profile</span></Link>
           <button
             className="mn-link danger"
             onClick={() => logout()}
-          >🚪<span>Logout</span></button>
+          ><span>Logout</span></button>
         </div>
       )}
     </header>

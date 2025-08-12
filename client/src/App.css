@@ -24,7 +24,8 @@ body {
 
 .main-content {
   flex: 1;
-  padding-top: 70px; /* Account for fixed header */
+  /* Removed padding-top so first section (hero) sits flush under sticky header */
+  padding-top: 0;
 }
 
 /* Common Button Styles */
@@ -176,9 +177,7 @@ body {
     padding: 0 1rem;
   }
   
-  .main-content {
-    padding-top: 60px;
-  }
+  .main-content { padding-top:0; }
 }
 
 /* PWA Specific Styles */
