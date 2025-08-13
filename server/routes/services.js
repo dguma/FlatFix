@@ -30,12 +30,16 @@ const createRequestSchema = {
   })
 };
 
+// Canonical statuses
+const CANONICAL_STATUSES = ['en-route','on-location','in-progress','completed','cancelled'];
+// Include alias spellings for validation convenience
+const STATUS_ALIASES = ['enroute','onlocation'];
 const statusUpdateSchema = {
   params: Joi.object({
     requestId: Joi.string().hex().length(24).required()
   }),
   body: Joi.object({
-    status: Joi.string().valid('in-progress','completed','cancelled').required()
+    status: Joi.string().valid(...CANONICAL_STATUSES, ...STATUS_ALIASES).required()
   })
 };
 
@@ -219,9 +223,13 @@ router.get('/my-jobs', authenticateToken, async (req, res) => {
 });
 
 // Update service status
-router.patch('/status/:requestId', authenticateToken, validate(statusUpdateSchema), async (req, res) => {
+router.patch('/status/:requestId', (req, res, next) => { console.log('[STATUS PATCH pre-auth raw body]', req.body); next(); }, authenticateToken, (req, res, next) => { console.log('[STATUS PATCH after auth user]', req.user); next(); }, validate(statusUpdateSchema), async (req, res) => {
   try {
-    const { status } = req.body;
+  let { status } = req.body;
+  // Normalize alias spellings to canonical values
+  if (status === 'enroute') status = 'en-route';
+  if (status === 'onlocation') status = 'on-location';
+  console.log('[STATUS PATCH] incoming status:', req.body.status, 'normalized:', status, 'requestId:', req.params.requestId);
     const request = await ServiceRequest.findById(req.params.requestId);
     
     if (!request) {
@@ -236,18 +244,67 @@ router.patch('/status/:requestId', authenticateToken, validate(statusUpdateSchem
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const allowedStatuses = ['in-progress', 'completed', 'cancelled'];
+  const allowedStatuses = CANONICAL_STATUSES;
+  console.log('[STATUS PATCH] allowed statuses for validation (post-normalization check):', allowedStatuses);
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
+    // Update status + timeline stamps
+    const now = new Date();
     request.status = status;
+    request.timeline = request.timeline || {};
+    if (status === 'en-route' && !request.timeline.enRouteAt) request.timeline.enRouteAt = now;
+    if (status === 'on-location' && !request.timeline.onLocationAt) request.timeline.onLocationAt = now;
+    if (status === 'in-progress' && !request.timeline.workStartedAt) request.timeline.workStartedAt = now;
+    if (status === 'completed') {
+      if (!request.timeline.workCompletedAt) request.timeline.workCompletedAt = now;
+      // Basic stats increment (async best-effort)
+      try {
+        if (request.technicianId) {
+          const tech = await User.findById(request.technicianId);
+          if (tech) {
+            tech.stats = tech.stats || {};
+            tech.stats.jobsCompleted = (tech.stats.jobsCompleted || 0) + 1;
+            await tech.save();
+          }
+        }
+      } catch (e) { console.error('stats increment failed', e); }
+    }
     await request.save();
 
     res.json({ message: 'Status updated successfully', request });
   } catch (error) {
     console.error('Error updating status:', error);
     res.status(500).json({ message: 'Failed to update status' });
+  }
+});
+
+// Debug helper endpoint: returns the canonical and alias statuses used by this server instance
+router.get('/status-allowed/debug', authenticateToken, (req, res) => {
+  res.json({ canonical: CANONICAL_STATUSES, aliases: STATUS_ALIASES });
+});
+
+// Capture customer signature (base64 data URL) after completion workflow
+router.post('/:requestId/signature', authenticateToken, async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { signatureData, customerName } = req.body || {};
+    if (!signatureData || typeof signatureData !== 'string') return res.status(400).json({ message: 'signatureData required (base64 PNG data URL)' });
+    const request = await ServiceRequest.findById(requestId);
+    if (!request) return res.status(404).json({ message: 'Service request not found' });
+    const isCustomer = request.customerId.toString() === req.user.userId;
+    const isTechnician = request.technicianId && request.technicianId.toString() === req.user.userId;
+    if (!isCustomer && !isTechnician) return res.status(403).json({ message: 'Unauthorized' });
+    request.completion = request.completion || {};
+    request.completion.customerSignature = signatureData;
+    request.completion.customerName = customerName || request.completion.customerName || 'Customer';
+    request.completion.capturedAt = new Date();
+    await request.save();
+    res.json({ message: 'Signature stored', completion: request.completion });
+  } catch (e) {
+    console.error('signature capture failed', e);
+    res.status(500).json({ message: 'Failed to store signature' });
   }
 });
 

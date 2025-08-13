@@ -166,8 +166,9 @@ router.get('/my-jobs', authenticateToken, async (req, res) => {
   }
 });
 
-// Update service status
+// Update service status (LEGACY: consider removing; supports new statuses for compatibility)
 router.patch('/status/:requestId', authenticateToken, async (req, res) => {
+  console.warn('[LEGACY services_clean] status route invoked - consider removing this file to avoid confusion');
   try {
     const { status } = req.body;
     const request = await ServiceRequest.findById(req.params.requestId);
@@ -184,7 +185,7 @@ router.patch('/status/:requestId', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const allowedStatuses = ['pending', 'assigned', 'in-progress', 'completed', 'cancelled'];
+  const allowedStatuses = ['pending','assigned','en-route','on-location','in-progress','completed','cancelled'];
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }

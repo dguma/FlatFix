@@ -188,6 +188,8 @@
 
 /* (Removed mobile persistent action bar) */
 /* Compact mobile nav row */
+/* Hidden by default on larger screens */
+.mobile-nav-row { display:none; }
 @media (max-width: 760px) {
   .mobile-nav-row { position: fixed; bottom: 0; left: 0; right: 0; background:#2c3e50; display:flex; justify-content:space-around; align-items:stretch; padding:.4rem .25rem calc(env(safe-area-inset-bottom,0) + .35rem); border-top:1px solid rgba(255,255,255,0.15); z-index:1002; }
   body.with-mobile-nav { padding-bottom:64px; }

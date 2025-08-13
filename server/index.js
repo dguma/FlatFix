@@ -128,11 +128,13 @@ mongoose.connect(mongoUri)
 // Routes
 const authRoutes = require('./routes/auth');
 const serviceRoutes = require('./routes/services');
+const techApplicationsRoutes = require('./routes/techApplications');
 const userRoutes = require('./routes/users');
 const profileRoutes = require('./routes/profile');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/tech', techApplicationsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/profile', profileRoutes);
 

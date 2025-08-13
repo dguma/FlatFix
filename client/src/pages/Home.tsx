@@ -35,8 +35,8 @@ const Home: React.FC = () => {
   const UNSPLASH_FALLBACK = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=60';
   const [heroSrc, setHeroSrc] = useState<string>(PIXABAY);
 
-  // Service data for dynamic rendering & filtering
-  type ServiceItem = { id:string; icon:string; title:string; desc:string; price:string; category: 'tire' | 'roadside' | 'access' | 'power' | 'fuel' };
+  // Service data for dynamic rendering & filtering (removed 'roadside' category from grid)
+  type ServiceItem = { id:string; icon:string; title:string; desc:string; price:string; category: 'tire' | 'access' | 'power' | 'fuel' };
   const services: ServiceItem[] = useMemo(() => ([
     { id:'air', icon:'💨', title:'Air Inflation', desc:'Low pressure? We inflate & inspect your tire health.', price:'$20 Base', category:'tire' },
     { id:'spare', icon:'🔧', title:'Spare Tire Replace', desc:'Swap to your spare, torque, inflate & safety check.', price:'$20 + $15', category:'tire' },
@@ -79,10 +79,28 @@ const Home: React.FC = () => {
   };
 
   // Filter providers (placeholder logic could be extended for regional coverage)
+  // Simple zip -> region mapping (stub). In future replace with real coverage logic.
+  const zipRegion = (z:string): 'national' | 'metro' | 'other' => {
+    if (!z) return 'other';
+    if (/^(90|91|92|93)/.test(z)) return 'metro'; // west coast sample
+    return 'national';
+  };
   const visibleProviders = useMemo(() => {
     if (!zip) return roadsideProviders; // show all until zip entered
-    return roadsideProviders; // Future: filter by coverage region
+    const region = zipRegion(zip);
+    // Example filter: if metro region, drop purely national membership marketing example
+    return roadsideProviders.filter(p => {
+      if (region === 'metro') return true; // keep all for now (placeholder)
+      return true; // fallback retains all until real logic defined
+    });
   }, [zip, roadsideProviders]);
+
+  const handleZipSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Force re-evaluation (zip state already set via onChange) & scroll providers into view
+    const grid = document.querySelector('.providers-grid');
+    if (grid) grid.scrollIntoView({ behavior:'smooth', block:'start' });
+  };
 
   // Intersection Observer for reveal items (initial: hero narrative) + lazy init for services
   useEffect(() => {
@@ -90,8 +108,13 @@ const Home: React.FC = () => {
     let serviceObserved = false;
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('in');
-        else if (entry.boundingClientRect.top > 0) entry.target.classList.remove('in');
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+        } else if (entry.boundingClientRect.top > 0 && !entry.target.classList.contains('service-card')) {
+          // Only remove the reveal state for non-service cards so service cards
+          // remain visible after initial reveal (prevents disappearing on filter changes)
+          entry.target.classList.remove('in');
+        }
       });
     }, { threshold: 0.35 });
     baseItems.forEach(el => observer.observe(el));
@@ -113,6 +136,13 @@ const Home: React.FC = () => {
     const timer = window.setTimeout(attachServiceObserver, 4000);
     return () => { window.removeEventListener('scroll', onScroll); clearTimeout(timer); observer.disconnect(); };
   }, []);
+
+  // When the filter changes, ensure currently rendered service cards are visible.
+  // Without this, newly filtered subsets may start hidden (opacity 0) until they re-intersect.
+  useEffect(() => {
+    const cards = document.querySelectorAll('.services-grid .service-card');
+    cards.forEach(c => c.classList.add('in'));
+  }, [filter]);
 
   return (
     <div className="home">
@@ -211,7 +241,7 @@ const Home: React.FC = () => {
           <p className="services-intro">Everything you need on the roadside in a unified, on‑demand flow. No memberships. Just request, confirm, and we roll.</p>
 
           <div className="service-filters" role="tablist" aria-label="Service Categories">
-            {['all','tire','power','access','fuel','roadside'].map(cat => (
+            {['all','tire','power','access','fuel'].map(cat => (
               <button
                 key={cat}
                 role="tab"
@@ -244,10 +274,11 @@ const Home: React.FC = () => {
         <div className="container">
           <h2 className="roadside-title">Need Towing Or Heavy Roadside?</h2>
           <p className="roadside-intro">We focus on rapid mobile fixes. For towing, winch-outs, accident recovery or long-distance transport, connect with a trusted provider below. Enter your zip (or detect) to explore options. Links open in a new tab.</p>
-          <form className="zip-form" onSubmit={(e) => { e.preventDefault(); }}>
+          <form className="zip-form" onSubmit={handleZipSubmit}>
             <label htmlFor="zip" className="sr-only">ZIP Code</label>
-            <input id="zip" name="zip" value={zip} onChange={e=>setZip(e.target.value.replace(/[^0-9]/g,''))} placeholder="ZIP" maxLength={10} inputMode="numeric" />
-            <button type="button" onClick={detectZipViaGeolocation} disabled={detectingZip} className="zip-btn">{detectingZip ? 'Locating...' : 'Detect'}</button>
+            <input id="zip" name="zip" value={zip} onChange={e=>setZip(e.target.value.replace(/[^0-9]/g,''))} placeholder="ZIP" maxLength={10} inputMode="numeric" aria-label="Enter ZIP code to filter providers" />
+            <button type="submit" className="zip-btn" aria-label="Apply ZIP filter">Search</button>
+            <button type="button" onClick={detectZipViaGeolocation} disabled={detectingZip} className="zip-btn" aria-label="Detect ZIP automatically">{detectingZip ? 'Locating...' : 'Detect'}</button>
             {zipError && <span className="zip-error" role="alert">{zipError}</span>}
           </form>
           <div className="providers-grid">

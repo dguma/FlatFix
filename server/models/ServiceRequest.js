@@ -27,16 +27,13 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'assigned', 'in-progress', 'completed', 'cancelled'],
+    enum: ['pending', 'assigned', 'en-route', 'on-location', 'in-progress', 'completed', 'cancelled'],
     default: 'pending'
   },
   location: {
-    address: {
-      type: String,
-      required: true
-  },
-  latitude: { type: Number },
-  longitude: { type: Number }
+    address: { type: String, required: true },
+    latitude: { type: Number },
+    longitude: { type: Number }
   },
   description: {
     type: String,
@@ -49,6 +46,17 @@ const serviceRequestSchema = new mongoose.Schema({
     latitude: { type: Number },
     longitude: { type: Number },
     distanceMiles: { type: Number }
+  },
+  timeline: {
+    enRouteAt: { type: Date },
+    onLocationAt: { type: Date },
+    workStartedAt: { type: Date },
+    workCompletedAt: { type: Date }
+  },
+  completion: {
+    customerSignature: { type: String },
+    customerName: { type: String },
+    capturedAt: { type: Date }
   }
 }, {
   timestamps: true
