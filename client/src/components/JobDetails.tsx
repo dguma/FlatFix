@@ -55,8 +55,8 @@ const JobDetails: React.FC<JobDetailsProps> = ({ jobId, onClose, onJobUpdate }) 
       if (response.ok) {
         onJobUpdate();
         fetchJobDetails();
-  if (status === 'completed' || status === 'cancelled') {
-          // Close shortly after final state
+        // Auto-close only if cancelled OR completed and there is already a signature present
+        if (status === 'cancelled') {
           setTimeout(() => { onClose(); }, 400);
         }
       } else {
@@ -145,7 +145,10 @@ const JobDetails: React.FC<JobDetailsProps> = ({ jobId, onClose, onJobUpdate }) 
         )}
 
         {job?.status==='completed' && !job?.completion?.customerSignature && (
-          <SignatureCapture jobId={job._id} onDone={() => { fetchJobDetails(); onJobUpdate(); }} />
+          <SignatureCapture
+            customerName={job?.customerId?.name || ''}
+            jobId={job._id}
+            onDone={() => { fetchJobDetails(); onJobUpdate(); /* Close after capture */ setTimeout(() => onClose(), 500); }} />
         )}
       </div>
     </div>
@@ -155,21 +158,25 @@ const JobDetails: React.FC<JobDetailsProps> = ({ jobId, onClose, onJobUpdate }) 
 export default JobDetails;
 
 // Lightweight inline signature capture (canvas) placeholder
-const SignatureCapture: React.FC<{ jobId:string; onDone: () => void }> = ({ jobId, onDone }) => {
+const SignatureCapture: React.FC<{ jobId:string; onDone: () => void; customerName?:string }> = ({ jobId, onDone, customerName }) => {
   const { token } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [mode, setMode] = useState<'draw' | 'type'>('draw');
+  const [typedName, setTypedName] = useState(customerName || '');
+  const [font, setFont] = useState('Brush Script MT, cursive');
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const drawCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+
+  // Setup drawing canvas
   useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    canvas.width = 400; canvas.height = 180;
+    if (mode !== 'draw') return;
+    const canvas = drawCanvasRef.current; if (!canvas) return;
+    canvas.width = 500; canvas.height = 200;
     const ctx = canvas.getContext('2d'); if (!ctx) return;
     ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.lineWidth = 2; ctx.lineCap='round'; ctx.strokeStyle='#222';
     let drawing = false;
-    const pos = (e:PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    };
+    const pos = (e:PointerEvent) => { const rect = canvas.getBoundingClientRect(); return { x: e.clientX - rect.left, y: e.clientY - rect.top }; };
     const start = (e:PointerEvent) => { drawing=true; ctx.beginPath(); const p=pos(e); ctx.moveTo(p.x,p.y); };
     const move = (e:PointerEvent) => { if(!drawing) return; const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
     const end = () => { drawing=false; };
@@ -177,30 +184,95 @@ const SignatureCapture: React.FC<{ jobId:string; onDone: () => void }> = ({ jobI
     canvas.addEventListener('pointermove', move);
     window.addEventListener('pointerup', end);
     return () => { canvas.removeEventListener('pointerdown', start); canvas.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end); };
-  }, []);
+  }, [mode]);
 
-  const handleSubmit = async () => {
+  // Prepare a hidden canvas ref for typed signature rendering
+  useEffect(() => {
+    if (mode !== 'type') return;
     const canvas = canvasRef.current; if (!canvas) return;
+    canvas.width = 500; canvas.height = 200;
+    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#111';
+    ctx.textBaseline = 'middle';
+    ctx.font = `64px ${font}`;
+    const text = typedName || '';
+    const metrics = ctx.measureText(text);
+    const x = (canvas.width - metrics.width) / 2;
+    const y = canvas.height / 2;
+    ctx.fillText(text, x, y);
+  }, [mode, typedName, font]);
+
+  const saveSignature = async () => {
     setSubmitting(true);
     try {
-      const dataUrl = canvas.toDataURL('image/png');
+      let dataUrl: string | null = null;
+      let customer = typedName || customerName || 'Customer';
+      if (mode === 'draw') {
+        const c = drawCanvasRef.current; if (!c) return; dataUrl = c.toDataURL('image/png');
+      } else {
+        const c = canvasRef.current; if (!c) return; dataUrl = c.toDataURL('image/png');
+      }
       const res = await fetch(`${API_BASE || ''}/api/services/${jobId}/signature`, {
-        method: 'POST', headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body: JSON.stringify({ signatureData: dataUrl })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ signatureData: dataUrl, customerName: customer })
       });
       if (res.ok) onDone();
     } finally { setSubmitting(false); }
   };
 
+  const clearDrawing = () => {
+    if (mode !== 'draw') return;
+    const c = drawCanvasRef.current; if (!c) return; const ctx = c.getContext('2d'); if (!ctx) return; ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+  };
+
+  const fonts = [
+    'Brush Script MT, cursive',
+    'Lucida Handwriting, cursive',
+    'Segoe Script, cursive',
+    'Comic Sans MS, cursive',
+    'Georgia, serif',
+    'Times New Roman, serif'
+  ];
+
   return (
     <div style={{ marginTop:'1rem' }}>
-      <h3 style={{ fontSize:'1rem' }}>Customer Signature</h3>
-      <canvas ref={canvasRef} style={{ border:'1px solid #ccc', borderRadius:4, touchAction:'none', background:'#fff', width:'100%', maxWidth:'420px' }} />
-      <div style={{ marginTop:'.5rem', display:'flex', gap:'.5rem' }}>
-        <button type="button" className="btn btn-primary" disabled={submitting} onClick={handleSubmit}>{submitting ? 'Saving...' : 'Save Signature'}</button>
-        <button type="button" className="btn btn-outline" onClick={() => {
-          const c=canvasRef.current; if(!c) return; const ctx=c.getContext('2d'); if(!ctx) return; ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height);
-        }}>Clear</button>
+      <h3 style={{ fontSize:'1rem', marginBottom:'.5rem' }}>Customer Signature</h3>
+      <div style={{ display:'flex', gap:'.75rem', marginBottom:'.5rem' }}>
+        <button type="button" className={`btn btn-sm ${mode==='draw' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setMode('draw')}>Draw</button>
+        <button type="button" className={`btn btn-sm ${mode==='type' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setMode('type')}>Type</button>
       </div>
+      {mode === 'draw' && (
+        <>
+          <canvas ref={drawCanvasRef} style={{ border:'1px solid #ccc', borderRadius:4, touchAction:'none', background:'#fff', width:'100%', maxWidth:'520px', height:'200px' }} />
+          <div style={{ marginTop:'.5rem', display:'flex', gap:'.5rem' }}>
+            <button type="button" className="btn btn-primary" disabled={submitting} onClick={saveSignature}>{submitting ? 'Saving...' : 'Save Signature'}</button>
+            <button type="button" className="btn btn-outline" onClick={clearDrawing}>Clear</button>
+          </div>
+        </>
+      )}
+      {mode === 'type' && (
+        <div style={{ maxWidth:'520px' }}>
+          <div className="form-group" style={{ marginBottom:'.5rem' }}>
+            <label style={{ fontSize:'.75rem', fontWeight:600 }}>Customer Name</label>
+            <input type="text" value={typedName} onChange={e => setTypedName(e.target.value)} placeholder="Enter printed name" style={{ width:'100%' }} />
+          </div>
+          <div className="form-group" style={{ marginBottom:'.5rem' }}>
+            <label style={{ fontSize:'.75rem', fontWeight:600 }}>Signature Style</label>
+            <select value={font} onChange={e => setFont(e.target.value)} style={{ width:'100%' }}>
+              {fonts.map(f => <option key={f} value={f}>{f.split(',')[0]}</option>)}
+            </select>
+          </div>
+          <div style={{ border:'1px solid #ccc', borderRadius:4, background:'#fff', padding:'1.25rem', textAlign:'center', fontSize:'2.75rem', fontFamily: font, minHeight:'120px' }}>
+            {typedName || 'Sample'}
+          </div>
+          <canvas ref={canvasRef} style={{ display:'none' }} />
+          <div style={{ marginTop:'.75rem' }}>
+            <button type="button" className="btn btn-primary" disabled={submitting || !typedName} onClick={saveSignature}>{submitting ? 'Saving...' : 'Save Signature'}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
