@@ -6,24 +6,6 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-  applicationStatus: { type: String, enum: ['pending','waitlisted','approved','rejected','needs-info'], default: 'pending' },
-  applicationId: { type: mongoose.Schema.Types.ObjectId, ref: 'TechApplication' },
-  orientation: {
-    startedAt: { type: Date },
-    completedAt: { type: Date },
-    currentSlide: { type: Number, default: 0 },
-    totalSlides: { type: Number, default: 0 },
-    progress: { type: Number, default: 0 }
-  },
-  documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
-  onboardingComplete: { type: Boolean, default: false },
-  waitlistPosition: { type: Number },
-  stats: {
-    jobsCompleted: { type: Number, default: 0 },
-    earningsCents: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 },
-    ratingsCount: { type: Number, default: 0 }
-  },
     trim: true
   },
   email: {
@@ -39,7 +21,7 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-  required: false
+    required: true
   },
   // Use userType to match routes/auth.js and downstream role checks
   userType: {
@@ -55,7 +37,6 @@ const userSchema = new mongoose.Schema({
   vehicleInfo: {
     make: { type: String },
     model: { type: String },
-  year: { type: String },
     licensePlate: { type: String }
   },
   // Profile avatar (small images / data URL or hosted link)
@@ -65,26 +46,6 @@ const userSchema = new mongoose.Schema({
     lockoutKit: { type: Boolean, default: false },
     jumpStarter: { type: Boolean, default: false },
     fuelCan: { type: Boolean, default: false }
-  },
-  // Technician application / onboarding fields
-  applicationStatus: { type: String, enum: ['pending','waitlisted','approved','rejected','needs-info'], default: 'pending' },
-  applicationId: { type: mongoose.Schema.Types.ObjectId, ref: 'TechApplication' },
-  orientation: {
-    startedAt: { type: Date },
-    completedAt: { type: Date },
-    currentSlide: { type: Number, default: 0 },
-    totalSlides: { type: Number, default: 0 },
-    progress: { type: Number, default: 0 } // 0-100
-  },
-  documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
-  onboardingComplete: { type: Boolean, default: false },
-  waitlistPosition: { type: Number },
-  // Basic aggregates for dashboard (can be recomputed periodically)
-  stats: {
-    jobsCompleted: { type: Number, default: 0 },
-    earningsCents: { type: Number, default: 0 },
-    averageRating: { type: Number, default: 0 },
-    ratingsCount: { type: Number, default: 0 }
   },
   // Optional location (populated when user shares GPS). Not indexed yet; add geo index later if needed.
   location: {

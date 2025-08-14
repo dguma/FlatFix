@@ -110,8 +110,6 @@ const ServiceRequest: React.FC = () => {
     return R * c;
   };
 
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -120,8 +118,7 @@ const ServiceRequest: React.FC = () => {
       return;
     }
 
-  setSubmitError(null);
-  setIsSubmitting(true);
+    setIsSubmitting(true);
 
     try {
       const body: any = { ...formData };
@@ -148,17 +145,11 @@ const ServiceRequest: React.FC = () => {
       if (response.ok) {
         navigate('/customer-dashboard');
       } else {
-        let msg = 'Failed to create service request';
-        try {
-          const data = await response.json();
-          if (data && data.message) msg = data.message;
-        } catch {}
-        setSubmitError(msg);
-        return;
+        throw new Error('Failed to create service request');
       }
     } catch (error) {
       console.error('Error creating service request:', error);
-      setSubmitError('Network or server error. Please try again.');
+      alert('Failed to create service request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -308,8 +299,6 @@ const ServiceRequest: React.FC = () => {
                 </div>
               </div>
             )}
-
-            {submitError && <div className="error-message" role="alert" style={{ marginTop:'-.5rem' }}>{submitError}</div>}
 
             <button 
               type="submit" 

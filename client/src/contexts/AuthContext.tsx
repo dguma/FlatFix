@@ -24,7 +24,6 @@ interface User {
   vehicleInfo?: {
     make: string;
     model: string;
-  year?: string;
     licensePlate: string;
   };
   avatarUrl?: string;

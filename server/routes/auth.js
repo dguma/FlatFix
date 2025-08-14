@@ -11,12 +11,11 @@ const registerSchema = {
     name: Joi.string().min(2).max(80).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
-  phone: Joi.string().min(6).max(30).optional().allow('', null),
+    phone: Joi.string().min(6).max(30).optional(),
     userType: Joi.string().valid('customer','technician','admin').optional(),
     vehicleInfo: Joi.object({
       make: Joi.string().optional(),
       model: Joi.string().optional(),
-  year: Joi.alternatives(Joi.string(), Joi.number()).optional(),
       licensePlate: Joi.string().optional()
     }).optional()
   })
@@ -32,7 +31,7 @@ const loginSchema = {
 // Register
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
-  const { name, email, password, phone, userType, vehicleInfo } = req.body;
+    const { name, email, password, phone, userType, vehicleInfo } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -49,8 +48,8 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       userType
     };
 
-    // Attach vehicle info if provided (for any user type)
-    if (vehicleInfo) {
+    // Add vehicle info for technicians
+    if (userType === 'technician' && vehicleInfo) {
       userData.vehicleInfo = vehicleInfo;
     }
 

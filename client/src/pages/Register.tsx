@@ -8,7 +8,6 @@ const Register: React.FC = () => {
     name: '',
     email: '',
     password: '',
-  confirmPassword: '',
     phone: '',
     userType: 'customer' as 'customer' | 'technician',
     vehicleInfo: {
@@ -50,28 +49,13 @@ const Register: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Basic client-side validation for password match
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
-        setIsLoading(false);
-        return;
-      }
-
-      // Determine if any vehicle info was provided (allow for customer + technician)
-      const hasVehicleInfo = Object.values(formData.vehicleInfo).some(v => v && v.toString().trim() !== '');
-
       const registrationData = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
         userType: formData.userType,
-        ...(hasVehicleInfo && { vehicleInfo: {
-          make: formData.vehicleInfo.make || undefined,
-          model: formData.vehicleInfo.model || undefined,
-          year: formData.vehicleInfo.year || undefined,
-          licensePlate: formData.vehicleInfo.licensePlate || undefined
-        } })
+        ...(formData.userType === 'technician' && { vehicleInfo: formData.vehicleInfo })
       };
 
       await register(registrationData);
@@ -159,72 +143,62 @@ const Register: React.FC = () => {
                 minLength={6}
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                placeholder="Re-enter your password"
-                minLength={6}
-              />
-            </div>
-            <>
-              <h3>Vehicle Information <span style={{fontWeight: 'normal', fontSize: '0.85em'}}>(optional but helps us assist faster)</span></h3>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="vehicle.make">Vehicle Make</label>
-                  <input
-                    type="text"
-                    id="vehicle.make"
-                    name="vehicle.make"
-                    value={formData.vehicleInfo.make}
-                    onChange={handleChange}
-                    placeholder="e.g., Toyota"
-                  />
+
+            {formData.userType === 'technician' && (
+              <>
+                <h3>Vehicle Information</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="vehicle.make">Vehicle Make</label>
+                    <input
+                      type="text"
+                      id="vehicle.make"
+                      name="vehicle.make"
+                      value={formData.vehicleInfo.make}
+                      onChange={handleChange}
+                      placeholder="e.g., Toyota"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="vehicle.model">Vehicle Model</label>
+                    <input
+                      type="text"
+                      id="vehicle.model"
+                      name="vehicle.model"
+                      value={formData.vehicleInfo.model}
+                      onChange={handleChange}
+                      placeholder="e.g., Camry"
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="vehicle.model">Vehicle Model</label>
-                  <input
-                    type="text"
-                    id="vehicle.model"
-                    name="vehicle.model"
-                    value={formData.vehicleInfo.model}
-                    onChange={handleChange}
-                    placeholder="e.g., Camry"
-                  />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="vehicle.year">Year</label>
+                    <input
+                      type="number"
+                      id="vehicle.year"
+                      name="vehicle.year"
+                      value={formData.vehicleInfo.year}
+                      onChange={handleChange}
+                      placeholder="e.g., 2020"
+                      min="1990"
+                      max="2025"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="vehicle.licensePlate">License Plate</label>
+                    <input
+                      type="text"
+                      id="vehicle.licensePlate"
+                      name="vehicle.licensePlate"
+                      value={formData.vehicleInfo.licensePlate}
+                      onChange={handleChange}
+                      placeholder="e.g., ABC-123"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="vehicle.year">Year</label>
-                  <input
-                    type="number"
-                    id="vehicle.year"
-                    name="vehicle.year"
-                    value={formData.vehicleInfo.year}
-                    onChange={handleChange}
-                    placeholder="e.g., 2020"
-                    min="1980"
-                    max={new Date().getFullYear() + 1}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="vehicle.licensePlate">License Plate</label>
-                  <input
-                    type="text"
-                    id="vehicle.licensePlate"
-                    name="vehicle.licensePlate"
-                    value={formData.vehicleInfo.licensePlate}
-                    onChange={handleChange}
-                    placeholder="e.g., ABC-123"
-                  />
-                </div>
-              </div>
-            </>
+              </>
+            )}
 
             <button 
               type="submit" 
