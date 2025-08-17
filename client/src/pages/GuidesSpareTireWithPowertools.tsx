@@ -189,7 +189,7 @@ const quiz: QuizQuestion[] = [
 ];
 
 const GuidesSpareTireWithPowertools: React.FC = () => {
-  const { token, user, register } = useAuth() as any;
+  const { token, user, register, login } = useAuth() as any;
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [quizVisible, setQuizVisible] = useState(false);
@@ -270,11 +270,12 @@ const GuidesSpareTireWithPowertools: React.FC = () => {
     // Pre-registration technician path: create account on pass using saved form
     if (preRegMode && !user) {
       if (passed) {
+        let pending: any = null;
         try {
           setSaving(true);
           const raw = sessionStorage.getItem('pendingTechRegistration');
-          if (!raw) throw new Error('Missing pending registration data');
-          const pending = JSON.parse(raw);
+          pending = raw ? JSON.parse(raw) : null;
+          if (!pending) throw new Error('Missing pending registration data');
           const regPayload = {
             name: pending.name,
             email: pending.email,
@@ -287,12 +288,31 @@ const GuidesSpareTireWithPowertools: React.FC = () => {
           // Use existing register helper to store token/user
           await register(regPayload);
           sessionStorage.removeItem('pendingTechRegistration');
-          navigate('/technician-signup', { replace: true });
+          alert('Congratulations! You passed the quiz and your technician account has been created.');
+          navigate('/profile', { replace: true });
           return;
         } catch (e) {
           console.error('Auto registration failed', e);
-          alert('Registration failed after passing quiz. Please try signing up again.');
-          return;
+          // Try automatic login if user already exists, then award badge
+          try {
+            await login(pending.email, pending.password);
+            const t = localStorage.getItem('token');
+            if (t) {
+              await fetch(`${API_BASE || ''}/api/profile/skill-tests`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+                body: JSON.stringify({ key: 'spare-tire', name: 'Spare Tire Change Verified', score: 100 })
+              }).catch(()=>{});
+            }
+            alert('Congratulations! Perfect score recorded. You are now verified.');
+            navigate('/profile', { replace: true });
+            return;
+          } catch (loginErr) {
+            console.error('Auto login after pass failed', loginErr);
+            alert('We recorded your perfect score, but account creation/login failed. Please return to Register to finish sign-up.');
+            navigate('/register');
+            return;
+          }
         } finally { setSaving(false); }
       } else {
         // Keep data so they can retry; no API call
@@ -443,9 +463,7 @@ const GuidesSpareTireWithPowertools: React.FC = () => {
                   </ul>
                   <div style={{ marginTop: '.6rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
                     <button className="btn btn-outline" onClick={() => { setSubmitted(false); setAnswers(Array(quiz.length).fill(-1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Retake Quiz</button>
-                    <button className="btn" onClick={() => navigate('/register')}>
-                      Return to Sign Up
-                    </button>
+                    <button className="btn" onClick={() => navigate('/')}>Back to Home</button>
                   </div>
                 </div>
               )}
