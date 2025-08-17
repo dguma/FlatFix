@@ -37,26 +37,29 @@ const TechnicianSignUp: React.FC = () => {
   };
 
   useEffect(() => {
-    // Prefill email from logged-in user and check badges
+    // Require login for applying; prefill from current user
     if (user?.email) setEmail(user.email);
+    if (user?.name) setName(user.name);
     fetchBadges();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, user?.email]);
+  }, [token, user?.email, user?.name]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('submitting');
+  if (!token) { setMessage('Please log in to apply.'); return; }
+  if (!hasBadge) { setMessage('You must earn the Spare Tire badge first.'); return; }
+  setStatus('submitting');
     setMessage('');
     try {
       const body = {
-        name,
-        email,
+        name: user?.name || name,
+        email: user?.email || email,
         phone,
         experienceYears: typeof experienceYears === 'number' ? experienceYears : undefined,
       };
   const res = await fetch(`${API_BASE || ''}/api/apply`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(body)
       });
       const data = await res.json().catch(()=>({}));
@@ -85,7 +88,7 @@ const TechnicianSignUp: React.FC = () => {
         </div>
       </div>
       <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap: '.75rem', maxWidth: '420px' }}>
-        <input value={name} onChange={e=>setName(e.target.value)} placeholder="Full name" required />
+        <input value={name} onChange={e=>setName(e.target.value)} placeholder="Full name" required disabled={!!user?.name} />
         <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" required disabled={!!user?.email} />
         <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Phone" required />
         <input type="number" min={0} max={50} value={experienceYears} onChange={e=>setExperienceYears(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Years of experience (optional)" />

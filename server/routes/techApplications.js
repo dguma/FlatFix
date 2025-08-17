@@ -29,23 +29,30 @@ const applicationSchema = {
   })
 };
 
-router.post('/apply', validate(applicationSchema), async (req, res) => {
+router.post('/apply', authenticateToken, validate(applicationSchema), async (req, res) => {
   try {
-    const { email } = req.body;
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(401).json({ message: 'Unauthorized' });
+
+    const email = user.email;
     const existing = await TechApplication.findOne({ email, status: { $in: ['pending','waitlisted'] } });
     if (existing) return res.status(409).json({ message: 'An application is already in review for this email.' });
 
     // Gate: user must exist and have 100% pass on spare-tire skill test
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Create an account and complete the Spare Tire guide and knowledge check before applying.' });
-    }
     const passedSpare = (user.skillTests || []).some(t => t.key === 'spare-tire' && t.passedAt);
     if (!passedSpare) {
       return res.status(400).json({ message: 'Requirement not met: You must score 100% on the Spare Tire knowledge check to apply.' });
     }
 
-    const app = new TechApplication(req.body);
+    // Build application from user profile + provided optional fields
+    const app = new TechApplication({
+      name: req.body.name || user.name,
+      email: user.email,
+      phone: req.body.phone || user.phone,
+      experienceYears: req.body.experienceYears,
+      vehicle: req.body.vehicle,
+      equipmentOwned: req.body.equipmentOwned
+    });
     await app.save();
     res.status(201).json({ message: 'Application received. We will review shortly.', applicationId: app._id });
   } catch (e) {

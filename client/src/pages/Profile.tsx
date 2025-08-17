@@ -105,6 +105,15 @@ const Profile: React.FC = () => {
           <p><strong>Name:</strong> {user.name}</p>
             <p><strong>Email:</strong> {user.email}</p>
           <p><strong>Role:</strong> {user.userType}</p>
+          {user.vehicleInfo && (user.vehicleInfo.make || user.vehicleInfo.model || user.vehicleInfo.licensePlate) && (
+            <div style={{ marginTop: '.5rem' }}>
+              <h4>Vehicle</h4>
+              <p style={{ margin: 0 }}>
+                {[user.vehicleInfo.make, user.vehicleInfo.model].filter(Boolean).join(' ')}
+                {user.vehicleInfo.licensePlate ? ` • ${user.vehicleInfo.licensePlate}` : ''}
+              </p>
+            </div>
+          )}
           <a href="/change-password" className="btn btn-outline" style={{ marginTop:'.5rem', display:'inline-block' }}>Change Password</a>
         </div>
 

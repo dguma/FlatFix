@@ -110,7 +110,9 @@ router.post('/login', validate(loginSchema), async (req, res) => {
         name: user.name,
         email: user.email,
         userType: user.userType,
-        isAvailable: user.isAvailable
+        isAvailable: user.isAvailable,
+        vehicleInfo: user.vehicleInfo,
+        badges: user.badges || []
       }
     });
   } catch (error) {
@@ -121,7 +123,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
 // Get current user profile
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+  const user = await User.findById(req.user.userId).select('-password');
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Failed to get profile', error: error.message });
