@@ -17,6 +17,10 @@ const registerSchema = {
       make: Joi.string().optional(),
       model: Joi.string().optional(),
       licensePlate: Joi.string().optional()
+    }).optional(),
+    skillTest: Joi.object({
+      key: Joi.string().valid('spare-tire').required(),
+      score: Joi.number().min(0).max(100).required()
     }).optional()
   })
 };
@@ -31,7 +35,7 @@ const loginSchema = {
 // Register
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
-    const { name, email, password, phone, userType, vehicleInfo } = req.body;
+  const { name, email, password, phone, userType, vehicleInfo, skillTest } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -54,6 +58,13 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     }
 
     const user = new User(userData);
+    // If technician registration includes passing skill test, award on creation
+    if (userType === 'technician' && skillTest && skillTest.key === 'spare-tire' && Number(skillTest.score) >= 100) {
+      user.skillTests = user.skillTests || [];
+      user.skillTests.push({ key: 'spare-tire', score: 100, passedAt: new Date() });
+      user.badges = user.badges || [];
+      user.badges.push({ key: 'spare-tire', name: 'Spare Tire Change Verified', issuedAt: new Date() });
+    }
     await user.save();
 
     // Generate JWT token
@@ -63,14 +74,17 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({
+  res.status(201).json({
       message: 'User registered successfully',
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        userType: user.userType
+    userType: user.userType,
+    isAvailable: user.isAvailable,
+    vehicleInfo: user.vehicleInfo,
+    badges: user.badges || []
       }
     });
   } catch (error) {

@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { API_BASE } from '../config';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 // Safety & setup
 import eBrake from '../images/guides/spare-tire-change-with-powertools/picture-of-ebrake-on-dash.jpeg';
@@ -188,7 +189,8 @@ const quiz: QuizQuestion[] = [
 ];
 
 const GuidesSpareTireWithPowertools: React.FC = () => {
-  const { token, user } = useAuth();
+  const { token, user, register } = useAuth() as any;
+  const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [quizVisible, setQuizVisible] = useState(false);
   const [answers, setAnswers] = useState<number[]>(Array(quiz.length).fill(-1));
@@ -196,12 +198,18 @@ const GuidesSpareTireWithPowertools: React.FC = () => {
   const [result, setResult] = useState<{ score: number; passed: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [preRegMode, setPreRegMode] = useState(false);
 
   const score = useMemo(() => {
     const total = quiz.length;
     const correct = answers.reduce((acc, a, i) => acc + (a === quiz[i].correctIndex ? 1 : 0), 0);
     return Math.round((correct / total) * 100);
   }, [answers]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setPreRegMode(params.get('next') === 'register-tech');
+  }, []);
 
   // Simple inline SVG fallback if an external image blocks hotlinking
   const torqueWrenchFallback = encodeURI(
@@ -259,6 +267,39 @@ const GuidesSpareTireWithPowertools: React.FC = () => {
     setSubmitted(true);
     const passed = score >= 100;
     setResult({ score, passed });
+    // Pre-registration technician path: create account on pass using saved form
+    if (preRegMode && !user) {
+      if (passed) {
+        try {
+          setSaving(true);
+          const raw = sessionStorage.getItem('pendingTechRegistration');
+          if (!raw) throw new Error('Missing pending registration data');
+          const pending = JSON.parse(raw);
+          const regPayload = {
+            name: pending.name,
+            email: pending.email,
+            password: pending.password,
+            phone: pending.phone,
+            userType: 'technician',
+            vehicleInfo: pending.vehicleInfo,
+            skillTest: { key: 'spare-tire', score: 100 }
+          };
+          // Use existing register helper to store token/user
+          await register(regPayload);
+          sessionStorage.removeItem('pendingTechRegistration');
+          navigate('/technician-signup', { replace: true });
+          return;
+        } catch (e) {
+          console.error('Auto registration failed', e);
+          alert('Registration failed after passing quiz. Please try signing up again.');
+          return;
+        } finally { setSaving(false); }
+      } else {
+        // Keep data so they can retry; no API call
+        return;
+      }
+    }
+
     if (!user || !token) return;
     try {
       setSaving(true);
@@ -352,7 +393,7 @@ const GuidesSpareTireWithPowertools: React.FC = () => {
           </div>
         </div>
       </div>
-      {quizVisible && (
+  {quizVisible && (
         <div className="card" style={{ padding: '1rem', borderRadius: 8, background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,.08)', marginTop: '1rem' }}>
           <h2>Knowledge Check</h2>
           {quiz.map((q, idx) => (
@@ -390,6 +431,24 @@ const GuidesSpareTireWithPowertools: React.FC = () => {
           {submitted && result && (
             <div style={{ marginTop: '.75rem' }}>
               <strong>Score:</strong> {result.score}% — {result.passed ? 'Pass ✅ Badge awarded to your profile' : 'Below 100% — review and try again'}
+              {preRegMode && !result.passed && (
+                <div style={{ marginTop: '.75rem' }}>
+                  <div style={{ fontWeight:600, marginBottom: '.35rem' }}>Suggestions to pass next time:</div>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                    <li>Review jack points and lift only enough for clearance (use the spare as a height gauge).</li>
+                    <li>Hand-thread all lug nuts before any power tool tightening.</li>
+                    <li>Use a star (criss-cross) pattern for loosening and initial snugging.</li>
+                    <li>Final torque must be done with a torque wrench after lowering.</li>
+                    <li>Verify spare tire PSI before driving and re-check torque after 25–50 miles.</li>
+                  </ul>
+                  <div style={{ marginTop: '.6rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
+                    <button className="btn btn-outline" onClick={() => { setSubmitted(false); setAnswers(Array(quiz.length).fill(-1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Retake Quiz</button>
+                    <button className="btn" onClick={() => navigate('/register')}>
+                      Return to Sign Up
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

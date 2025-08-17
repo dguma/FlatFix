@@ -49,13 +49,23 @@ const Register: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // If user is registering as technician, require guide + quiz first.
+  if ((formData.userType as string) === 'technician') {
+        // We’ll stash the intended registration data in sessionStorage,
+        // send the user to the guide/quiz, and have the quiz return with a pass.
+        sessionStorage.setItem('pendingTechRegistration', JSON.stringify(formData));
+        window.location.href = '/guides/spare-tire-power?next=register-tech';
+        return;
+      }
+
+  const isTech = (formData.userType as string) === 'technician';
       const registrationData = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
         userType: formData.userType,
-        ...(formData.userType === 'technician' && { vehicleInfo: formData.vehicleInfo })
+        ...(isTech ? { vehicleInfo: formData.vehicleInfo } : {})
       };
 
       await register(registrationData);
