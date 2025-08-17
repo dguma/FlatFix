@@ -130,11 +130,13 @@ const authRoutes = require('./routes/auth');
 const serviceRoutes = require('./routes/services');
 const userRoutes = require('./routes/users');
 const profileRoutes = require('./routes/profile');
+const techAppRoutes = require('./routes/techApplications');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api', techAppRoutes);
 
 // Health check to verify frontend-backend connectivity
 app.get('/api/health', (req, res) => {

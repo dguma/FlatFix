@@ -146,7 +146,8 @@ router.get('/available', authenticateToken, async (req, res) => {
       query.serviceType = { $nin: equipmentFilters };
     }
 
-    const availableRequests = await ServiceRequest.find(query).populate('customerId', 'name email');
+    const availableRequests = await ServiceRequest.find(query)
+      .populate('customerId', 'name email');
 
     res.json(availableRequests);
   } catch (error) {
@@ -190,7 +191,7 @@ router.get('/my-requests', authenticateToken, async (req, res) => {
     }
 
     const requests = await ServiceRequest.find({ customerId: req.user.userId })
-      .populate('technicianId', 'name email')
+      .populate('technicianId', 'name email badges')
       .sort({ createdAt: -1 });
 
     res.json(requests);
@@ -254,7 +255,9 @@ router.patch('/status/:requestId', authenticateToken, validate(statusUpdateSchem
 // Get single service request (authorized: owner or assigned tech)
 router.get('/:requestId', authenticateToken, validate({ params: Joi.object({ requestId: Joi.string().hex().length(24).required() }) }), async (req, res) => {
   try {
-    const request = await ServiceRequest.findById(req.params.requestId).populate('customerId', 'name email').populate('technicianId', 'name email');
+    const request = await ServiceRequest.findById(req.params.requestId)
+      .populate('customerId', 'name email')
+      .populate('technicianId', 'name email badges');
     if (!request) return res.status(404).json({ message: 'Not found' });
     const isCustomer = request.customerId && request.customerId._id.toString() === req.user.userId;
     const isTechnician = request.technicianId && request.technicianId._id.toString() === req.user.userId;

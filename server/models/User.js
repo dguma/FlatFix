@@ -53,6 +53,22 @@ const userSchema = new mongoose.Schema({
     longitude: { type: Number },
     address: { type: String }
   },
+  // Earned badges (e.g., skill verifications shown to customers)
+  badges: [
+    new mongoose.Schema({
+      key: { type: String, required: true }, // e.g., 'spare-tire'
+      name: { type: String, required: true }, // e.g., 'Spare Tire Change Verified'
+      issuedAt: { type: Date, default: Date.now }
+    }, { _id: false })
+  ],
+  // Skill test results for gating (internal; can be used to award badges)
+  skillTests: [
+    new mongoose.Schema({
+      key: { type: String, required: true }, // e.g., 'spare-tire'
+      score: { type: Number, required: true, min: 0, max: 100 },
+      passedAt: { type: Date }
+    }, { _id: false })
+  ],
   // Password reset fields
   resetPasswordToken: { type: String },
   resetPasswordExpiry: { type: Date }

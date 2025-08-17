@@ -13,6 +13,15 @@ const equipmentSchema = {
   }).min(1)
 };
 
+// Schema for recording a skill test and optionally awarding a badge
+const skillTestSchema = {
+  body: Joi.object({
+    key: Joi.string().valid('spare-tire').required(),
+    name: Joi.string().default('Spare Tire Change Verified'),
+    score: Joi.number().min(0).max(100).required()
+  })
+};
+
 // Get my profile
 router.get('/me', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.userId).select('-password -resetPasswordToken -resetPasswordExpiry');
@@ -51,6 +60,41 @@ router.patch('/online', authenticateToken, async (req, res) => {
 router.get('/technicians/online-count', async (_req, res) => {
   const count = await User.countDocuments({ userType: 'technician', isAvailable: true });
   res.json({ onlineTechnicians: count });
+});
+
+// Get my badges
+router.get('/badges', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.userId).select('badges');
+  res.json({ badges: user?.badges || [] });
+});
+
+// Submit a skill test result; if ==100, record pass and award/ensure badge
+router.post('/skill-tests', authenticateToken, validate(skillTestSchema), async (req, res) => {
+  const { key, name, score } = req.body;
+  const user = await User.findById(req.user.userId);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  // Upsert skill test entry
+  const existing = (user.skillTests || []).find(t => t.key === key);
+  if (existing) {
+    existing.score = score;
+    existing.passedAt = score >= 100 ? new Date() : undefined;
+  } else {
+    user.skillTests = user.skillTests || [];
+    user.skillTests.push({ key, score, passedAt: score >= 100 ? new Date() : undefined });
+  }
+
+  // If pass, ensure badge exists
+  if (score >= 100) {
+    const hasBadge = (user.badges || []).some(b => b.key === key);
+    if (!hasBadge) {
+      user.badges = user.badges || [];
+      user.badges.push({ key, name: name || 'Skill Verified', issuedAt: new Date() });
+    }
+  }
+
+  await user.save();
+  res.json({ message: 'Skill test recorded', passed: score >= 100, badges: user.badges });
 });
 
 module.exports = router;

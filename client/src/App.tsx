@@ -18,6 +18,7 @@ import JobVerification from './pages/JobVerification';
 import TechnicianSignUp from './pages/TechnicianSignUp';
 import TechnicianDashboardRealtime from './pages/TechnicianDashboardRealtime';
 import Profile from './pages/Profile';
+import GuidesSpareTireWithPowertools from './pages/GuidesSpareTireWithPowertools';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -39,6 +40,7 @@ function App() {
               <Route path="/booking-confirmation" element={<BookingConfirmation />} />
               <Route path="/job-verification" element={<JobVerification />} />
               <Route path="/technician-signup" element={<TechnicianSignUp />} />
+              <Route path="/guides/spare-tire-power" element={<GuidesSpareTireWithPowertools />} />
               <Route 
                 path="/change-password" 
                 element={

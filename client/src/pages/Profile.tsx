@@ -20,8 +20,22 @@ const Profile: React.FC = () => {
     fuelCan: !!user?.equipment?.fuelCan
   });
   const [message, setMessage] = useState('');
+  const [badges, setBadges] = useState<Array<{ key:string; name:string; issuedAt:string }>>([]);
 
   useEffect(() => { setOnline(!!user?.isAvailable); }, [user?.isAvailable]);
+
+  useEffect(() => {
+    (async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE || ''}/api/profile/badges`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          setBadges(data.badges || []);
+        }
+      } catch {}
+    })();
+  }, [token]);
 
   if (!user) return <div className="container"><p>Please log in.</p></div>;
 
@@ -101,6 +115,19 @@ const Profile: React.FC = () => {
               <li><label><input type="checkbox" checked={equipment.fuelCan} onChange={() => updateEquipment('fuelCan')} /> Fuel Can</label></li>
             </ul>
             <p style={{ fontSize:'.75rem', opacity:.7, marginTop:'.5rem' }}>Jobs shown to you depend on selected equipment.</p>
+            {badges.length > 0 && (
+              <div style={{ marginTop:'1rem' }}>
+                <h4>Badges</h4>
+                <ul style={{ listStyle:'none', padding:0, margin:0, display:'grid', gap:'.35rem' }}>
+                  {badges.map((b) => (
+                    <li key={b.key} style={{ display:'flex', alignItems:'center', gap:'.5rem' }}>
+                      <span role="img" aria-label="badge">🏅</span>
+                      <span>{b.name || b.key} <span style={{ fontSize:'.75rem', opacity:.6 }}>({new Date(b.issuedAt).toLocaleDateString()})</span></span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>
