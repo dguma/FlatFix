@@ -10,7 +10,7 @@ const placeholderAvatars = [
 ];
 
 const Profile: React.FC = () => {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || placeholderAvatars[0]);
   const [savingAvatar, setSavingAvatar] = useState(false);
   const [online, setOnline] = useState(!!user?.isAvailable);
@@ -76,6 +76,26 @@ const Profile: React.FC = () => {
     } catch {}
   };
 
+  const deleteAccount = async () => {
+    if (!token) return;
+    const sure = window.confirm('Delete your account? This will cancel active jobs and remove your data. This cannot be undone.');
+    if (!sure) return;
+    try {
+      const res = await fetch(`${API_BASE || ''}/api/profile/me`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        logout();
+        window.location.href = '/';
+      } else {
+        alert('Failed to delete account.');
+      }
+    } catch {
+      alert('Error deleting account.');
+    }
+  };
+
   return (
     <div className="container" style={{ padding: '2rem 0' }}>
       <h2>Profile</h2>
@@ -130,6 +150,12 @@ const Profile: React.FC = () => {
             )}
           </div>
         )}
+      </div>
+
+      <div className="card" style={{ background:'#fff', padding:'1.25rem', borderRadius:8, boxShadow:'0 2px 4px rgba(0,0,0,0.08)' }}>
+        <h3>Danger Zone</h3>
+        <p style={{ fontSize: '.9rem', opacity: .85 }}>Deleting your account will cancel active jobs and remove your data. This cannot be undone.</p>
+        <button className="btn" style={{ background:'#e11d48', color:'#fff' }} onClick={deleteAccount}>Delete Account</button>
       </div>
     </div>
   );

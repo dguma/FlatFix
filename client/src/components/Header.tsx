@@ -14,7 +14,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     document.body.classList.add('hasjs');
     const applyMobileNavClass = () => {
-      if (window.innerWidth <= 760 && user) {
+      if (window.innerWidth <= 760 && user && user.userType === 'technician') {
         document.body.classList.add('with-mobile-nav');
       } else {
         document.body.classList.remove('with-mobile-nav');
@@ -100,13 +100,13 @@ const Header: React.FC = () => {
         </nav>
         {open && <div className="backdrop" onClick={close} />}
       </div>
-      {user && (
+    {user && user.userType === 'technician' && (
         <div className="mobile-nav-row" role="navigation" aria-label="Mobile quick navigation">
           <Link
-            to={user.userType === 'customer' ? '/customer-dashboard' : '/technician-dashboard'}
+            to="/technician-dashboard"
             className={`mn-link ${location.pathname.includes('dashboard') ? 'active' : ''}`}
           ><span>Dashboard</span></Link>
-          {user.userType === 'technician' && (
+      {user.userType === 'technician' && (
             <button
               className={`mn-link ${user.isAvailable ? 'online' : 'offline'}`}
               onClick={() => toggleAvailability()}

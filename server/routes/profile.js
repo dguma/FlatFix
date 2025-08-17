@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/authenticateToken');
 const User = require('../models/User');
+const ServiceRequest = require('../models/ServiceRequest');
+const TechApplication = require('../models/TechApplication');
+const Document = require('../models/Document');
 const Joi = require('joi');
 const validate = require('../middleware/validate');
 
@@ -95,6 +98,59 @@ router.post('/skill-tests', authenticateToken, validate(skillTestSchema), async 
 
   await user.save();
   res.json({ message: 'Skill test recorded', passed: score >= 100, badges: user.badges });
+});
+
+// Delete my account (self-service)
+router.delete('/me', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // 1) Cancel all active/pending jobs for this user as customer
+    await ServiceRequest.updateMany(
+      { customerId: userId, status: { $in: ['pending','assigned','in-progress'] } },
+      {
+        $set: {
+          status: 'cancelled',
+          technicianId: null,
+          cancellation: {
+            cancelledBy: 'system',
+            reason: 'User requested account deletion',
+            timestamp: new Date()
+          }
+        }
+      }
+    );
+
+    // 2) If technician, unassign their jobs to allow reassignment
+    await ServiceRequest.updateMany(
+      { technicianId: userId, status: { $in: ['assigned','in-progress'] } },
+      {
+        $set: {
+          status: 'cancelled',
+          technicianId: null,
+          cancellation: {
+            cancelledBy: 'system',
+            reason: 'Technician account deleted',
+            timestamp: new Date()
+          }
+        }
+      }
+    );
+
+    // 3) Remove tech applications and documents owned by the user
+    await TechApplication.deleteMany({ email: user.email });
+    await Document.deleteMany({ owner: userId });
+
+    // 4) Finally, remove the user account
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'Your account has been deleted. We’re sorry to see you go.' });
+  } catch (e) {
+    console.error('delete /profile/me error', e);
+    res.status(500).json({ message: 'Failed to delete account' });
+  }
 });
 
 module.exports = router;
