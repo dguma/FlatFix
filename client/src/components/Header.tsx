@@ -47,7 +47,7 @@ const Header: React.FC = () => {
             aria-label="Sign in or create an account"
           >Sign In / Up</Link>
         )}
-        <nav id="primary-nav" className={`nav ${open ? 'open' : ''}`} role="navigation" aria-label="Primary"> 
+        <nav id="primary-nav" className={`nav ${open ? 'open' : ''}`} role="navigation" aria-label="Primary">
           {user ? (
             <ul className="nav-items">
               <li className="nav-meta">
@@ -75,7 +75,6 @@ const Header: React.FC = () => {
                   className={`nav-link-btn ${location.pathname.includes('dashboard') ? 'active' : ''}`}
                 >Dashboard</Link>
               </li>
-              {/* Removed redundant standalone Profile link; avatar/name act as profile entry */}
               <li>
                 <Link to="/change-password" onClick={close} className={`nav-link-btn ${location.pathname === '/change-password' ? 'active' : ''}`}>Password</Link>
               </li>
