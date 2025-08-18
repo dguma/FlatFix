@@ -13,6 +13,7 @@ interface ServiceRequest {
   description?: string;
   status: 'pending' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
   createdAt: string;
+  pricing?: { base?: number; service?: number; estimate?: number };
 }
 
 const TechnicianDashboard: React.FC = () => {
@@ -22,6 +23,10 @@ const TechnicianDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { token, user, toggleAvailability } = useAuth();
   const isOnline = !!user?.isAvailable;
+  const [badges, setBadges] = useState<string[]>([]);
+  const [newAvailDiff, setNewAvailDiff] = useState(0);
+  const prevAvailRef = useRef(0);
+  const prevActiveRef = useRef(0);
 
   const fetchAvailableJobs = useCallback(async () => {
     try {
@@ -59,10 +64,31 @@ const TechnicianDashboard: React.FC = () => {
     }
   }, [token]);
 
+  // Fetch badges (for safety emblem)
+  useEffect(() => {
+    const grab = async () => {
+      if (!token || user?.userType !== 'technician') return;
+      try {
+        // Prefer badges from user object if present
+        const fromUser = (user as any)?.badges as Array<{ key: string }>|undefined;
+        if (fromUser && fromUser.length) {
+          setBadges(fromUser.map(b => b.key));
+          return;
+        }
+        const res = await fetch(`${API_BASE || ''}/api/profile/badges`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          setBadges((data?.badges || []).map((b: any) => b.key));
+        }
+      } catch {}
+    };
+    grab();
+  }, [token, user]);
+
   // Initial + availability-change fetch
   useEffect(() => {
-    if (isOnline) fetchAvailableJobs(); else setAvailableJobs([]);
-    fetchMyJobs();
+  if (isOnline) fetchAvailableJobs(); else setAvailableJobs([]);
+  fetchMyJobs();
   }, [fetchAvailableJobs, fetchMyJobs, isOnline]);
 
   // Polling to keep statuses fresh (similar to online count pattern)
@@ -72,13 +98,28 @@ const TechnicianDashboard: React.FC = () => {
     if (pollRef.current) window.clearInterval(pollRef.current);
     // Only poll if online or has active jobs
     const runner = async () => {
-      if (isOnline) fetchAvailableJobs();
-      fetchMyJobs();
+      if (isOnline) {
+        const before = prevAvailRef.current;
+        await fetchAvailableJobs();
+        // After fetchAvailableJobs updates state asynchronously, we compare in another tick
+        setTimeout(() => {
+          const diff = availableJobs.length - before;
+          if (diff > 0) setNewAvailDiff(d => d + diff);
+          prevAvailRef.current = availableJobs.length;
+        }, 0);
+      }
+      const beforeActive = prevActiveRef.current;
+      await fetchMyJobs();
+      setTimeout(() => {
+        const activeNow = myJobs.filter(j => j.status !== 'completed' && j.status !== 'cancelled').length;
+        if (activeNow > beforeActive) setNewAvailDiff(d => d + (activeNow - beforeActive));
+        prevActiveRef.current = activeNow;
+      }, 0);
     };
     runner();
     pollRef.current = window.setInterval(runner, 10000); // 10s cadence
     return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
-  }, [isOnline, fetchAvailableJobs, fetchMyJobs]);
+  }, [isOnline, fetchAvailableJobs, fetchMyJobs, availableJobs.length, myJobs, myJobs.length]);
 
   const handleToggleAvailability = async () => {
     const prev = isOnline;
@@ -131,6 +172,22 @@ const TechnicianDashboard: React.FC = () => {
     : s
   );
 
+  // Earnings helpers
+  const jobEarning = (job: ServiceRequest) => {
+    const p = job.pricing || {};
+    if (typeof p.estimate === 'number') return p.estimate;
+    const base = typeof p.base === 'number' ? p.base : 0;
+    const svc = typeof p.service === 'number' ? p.service : 0;
+    return base + svc;
+  };
+  const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
+  const completed = pastJobs.filter(j => j.status === 'completed');
+  const totalEarnings = sum(completed.map(jobEarning));
+  const now = new Date();
+  const monthAgo = new Date(now);
+  monthAgo.setDate(now.getDate() - 30);
+  const monthEarnings = sum(completed.filter(j => new Date(j.createdAt) >= monthAgo).map(jobEarning));
+
   if (loading) {
     return <div className="loading">Loading jobs...</div>;
   }
@@ -172,9 +229,36 @@ const TechnicianDashboard: React.FC = () => {
           {/* Summary chips */}
           <section className="jobs-section" style={{ gridColumn: '1 / -1' }}>
             <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap' }}>
-              <span className="status-chip summary">Available: {isOnline ? availableJobs.length : 0}</span>
+              <span className="status-chip summary">
+                Available: {isOnline ? availableJobs.length : 0}
+                {newAvailDiff > 0 && <span className="badge-new" onAnimationEnd={() => setNewAvailDiff(0)}>+{newAvailDiff}</span>}
+              </span>
               <span className="status-chip summary">Active: {activeJobs.length}</span>
               <span className="status-chip summary">Past: {pastJobs.length}</span>
+            </div>
+          </section>
+
+          {/* Earnings / Metrics */}
+          <section className="jobs-section metrics" style={{ gridColumn: '1 / -1' }}>
+            <div className="metric-cards">
+              <div className="metric-card">
+                <div className="metric-label">Earnings (30d)</div>
+                <div className="metric-value">${monthEarnings.toFixed(2)}</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-label">Total Earnings</div>
+                <div className="metric-value">${totalEarnings.toFixed(2)}</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-label">Completed Jobs</div>
+                <div className="metric-value">{completed.length}</div>
+              </div>
+              <div className="metric-card">
+                <div className="metric-label">Status</div>
+                <div className="metric-value" title={badges.includes('spare-tire') ? 'Safety Verified' : 'Verification pending'}>
+                  {badges.includes('spare-tire') ? '🛡️ Safety Verified' : '—'}
+                </div>
+              </div>
             </div>
           </section>
           <section className="jobs-section">
@@ -236,23 +320,21 @@ const TechnicianDashboard: React.FC = () => {
             )}
           </section>
 
-          <section className="jobs-section">
+          <section className="jobs-section compact">
             <h2>Past Jobs ({pastJobs.length})</h2>
             {pastJobs.length === 0 ? (
               <p>No past jobs yet.</p>
             ) : (
-              <div className="jobs-list">
-                {pastJobs.map(job => (
-                  <div key={job._id} className="job-card" style={{ borderLeftColor: job.status === 'completed' ? '#2ecc71' : '#e74c3c' }}>
-                    <div className="job-header">
-                      <div className="service-type">{serviceLabel(job.serviceType)}</div>
-                      <span className="status-badge" style={{ background: job.status === 'completed' ? '#2ecc71' : '#e74c3c' }}>{job.status}</span>
-                    </div>
-                    <p><strong>Location:</strong> {job.location?.address || 'Near provided location'}</p>
-                    <p><strong>Customer:</strong> {customerName(job)}</p>
-                  </div>
+              <ul className="compact-list">
+                {pastJobs.slice(0, 10).map(job => (
+                  <li key={job._id} className="compact-item">
+                    <span className="ci-service">{serviceLabel(job.serviceType)}</span>
+                    <span className={`ci-status ${job.status}`}>{job.status}</span>
+                    <span className="ci-where">{job.location?.address || 'Near provided location'}</span>
+                    <span className="ci-when">{new Date(job.createdAt).toLocaleDateString()}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </section>
         </div>

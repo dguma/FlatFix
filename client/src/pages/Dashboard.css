@@ -146,6 +146,46 @@
   font-size: .8rem;
 }
 
+.badge-new {
+  display:inline-block;
+  margin-left:.4rem;
+  background:#27ae60;
+  color:#fff;
+  border-radius:999px;
+  padding:0 .4rem;
+  font-size:.7rem;
+  font-weight:700;
+  animation: pulse-green 2s ease 2;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(1); box-shadow:0 0 0 0 rgba(39,174,96,0.5); }
+  70% { transform: scale(1.06); box-shadow:0 0 0 10px rgba(39,174,96,0); }
+  100% { transform: scale(1); box-shadow:0 0 0 0 rgba(39,174,96,0); }
+}
+
+/* Metrics */
+.metrics .metric-cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: .75rem; }
+.metric-card { background:#f7fafc; border:1px solid #e6eef5; border-radius:10px; padding:.9rem; box-shadow:0 2px 6px rgba(0,0,0,0.05); }
+.metric-label { font-size:.8rem; color:#6c7a89; }
+.metric-value { font-size:1.35rem; font-weight:800; color:#2c3e50; margin-top:.15rem; }
+
+/* Compact list for past jobs */
+.jobs-section.compact { padding: 1rem; }
+.compact-list { list-style:none; margin:0; padding:0; display:grid; grid-template-columns: 1fr; gap:.35rem; }
+.compact-item { display:grid; grid-template-columns: 1.2fr .8fr 1.8fr auto; gap:.5rem; align-items:center; background:#f8f9fa; padding:.6rem .75rem; border-radius:8px; border-left:4px solid #dfe6e9; }
+.compact-item .ci-service { font-weight:600; color:#2c3e50; }
+.compact-item .ci-status { font-size:.8rem; font-weight:700; padding:.2rem .5rem; border-radius:12px; color:#fff; text-transform:capitalize; justify-self:start; }
+.compact-item .ci-status.completed { background:#2ecc71; }
+.compact-item .ci-status.cancelled { background:#e74c3c; }
+.compact-item .ci-where { color:#34495e; font-size:.85rem; }
+.compact-item .ci-when { color:#7f8c8d; font-size:.8rem; }
+
+@media (max-width: 720px) {
+  .compact-item { grid-template-columns: 1fr auto; grid-auto-rows: auto; }
+  .compact-item .ci-where { grid-column: 1 / -1; }
+}
+
 .job-pay {
   font-weight: bold;
   color: #27ae60;
