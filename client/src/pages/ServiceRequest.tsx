@@ -15,6 +15,8 @@ const ServiceRequest: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
+  const [serverErrors, setServerErrors] = useState<string[] | null>(null);
   const { coords, loading: geoLoading, error: geoError, request: requestGeo } = useGeolocation(false);
   const [shopSuggestions, setShopSuggestions] = useState<Array<{name:string; phone:string; address:string; latitude?: number; longitude?: number}> | null>(null);
   const [shopsLoading, setShopsLoading] = useState(false);
@@ -113,7 +115,16 @@ const ServiceRequest: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.location.address) {
+    setServerErrors(null);
+    setDescriptionError('');
+    setLocationError('');
+
+    const desc = formData.description?.trim() || '';
+    if (desc.length < 5) {
+      setDescriptionError('Please describe the issue with at least 5 characters.');
+      return;
+    }
+    if (!formData.location.address || formData.location.address.trim().length < 3) {
       setLocationError('Please provide your location.');
       return;
     }
@@ -145,11 +156,18 @@ const ServiceRequest: React.FC = () => {
       if (response.ok) {
         navigate('/customer-dashboard');
       } else {
+        try {
+          const data = await response.json();
+          const errs: string[] = Array.isArray(data?.errors) ? data.errors : [];
+          setServerErrors(errs.length ? errs : [data?.message || 'Failed to create service request']);
+        } catch {
+          setServerErrors(['Failed to create service request']);
+        }
         throw new Error('Failed to create service request');
       }
     } catch (error) {
       console.error('Error creating service request:', error);
-      alert('Failed to create service request. Please try again.');
+      // Keep inline messages visible; optional toast could be added
     } finally {
       setIsSubmitting(false);
     }
@@ -201,7 +219,9 @@ const ServiceRequest: React.FC = () => {
                 placeholder="Describe your tire problem (e.g., flat tire, low pressure, etc.)"
                 rows={4}
                 required
+                minLength={5}
               />
+              {descriptionError && <div className="error-message">{descriptionError}</div>}
             </div>
 
             <div className="form-group">
@@ -307,6 +327,13 @@ const ServiceRequest: React.FC = () => {
             >
               {isSubmitting ? 'Requesting Service...' : 'Request Service'}
             </button>
+            {serverErrors && serverErrors.length > 0 && (
+              <div style={{ marginTop: '.5rem' }}>
+                {serverErrors.map((e, i) => (
+                  <div key={i} className="error-message">{e}</div>
+                ))}
+              </div>
+            )}
           </form>
         </div>
       </div>
