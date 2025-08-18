@@ -189,10 +189,8 @@
 /* (Removed mobile persistent action bar) */
 /* Compact mobile nav row */
 @media (max-width: 760px) {
-  /* Hidden by default; shown only when body.with-mobile-nav (technician only) */
-  .mobile-nav-row { display:none; position: fixed; bottom: 0; left: 0; right: 0; background:#2c3e50; justify-content:space-around; align-items:stretch; padding:.4rem .25rem calc(env(safe-area-inset-bottom,0) + .35rem); border-top:1px solid rgba(255,255,255,0.15); z-index:1002; }
-  body.with-mobile-nav .mobile-nav-row { display:flex; }
-  body.with-mobile-nav { padding-bottom:64px; }
+  /* Mobile persistent action bar removed */
+  .mobile-nav-row { display:none !important; }
   .mn-link { flex:1; background:none; border:none; color:#ecf0f1; text-decoration:none; font-size:.75rem; display:flex; flex-direction:column; align-items:center; gap:.2rem; padding:.25rem 0; font-weight:500; position:relative; }
   .mn-link span { font-size:.65rem; opacity:.85; }
   .mn-link.active { background:rgba(255,255,255,0.12); border-radius:8px; }
