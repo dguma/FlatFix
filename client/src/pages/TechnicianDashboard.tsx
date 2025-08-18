@@ -7,15 +7,11 @@ import { API_BASE } from '../config';
 
 interface ServiceRequest {
   _id: string;
-  customerId: {
-    username: string;
-  };
+  customerId?: { name?: string; email?: string } | string;
   serviceType: string;
-  location: {
-    address: string;
-  };
-  description: string;
-  status: string;
+  location?: { address?: string };
+  description?: string;
+  status: 'pending' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
   createdAt: string;
 }
 
@@ -115,6 +111,26 @@ const TechnicianDashboard: React.FC = () => {
     }
   };
 
+  const activeJobs = myJobs.filter(j => j.status !== 'completed' && j.status !== 'cancelled');
+  const pastJobs = myJobs.filter(j => j.status === 'completed' || j.status === 'cancelled');
+
+  const customerName = (job: ServiceRequest) => {
+    const c = job.customerId as any;
+    if (!c) return 'Customer';
+    if (typeof c === 'string') return 'Customer';
+    return c.name || c.email || 'Customer';
+  };
+
+  const serviceLabel = (s: string) => (
+    s === 'air-inflation' ? '💨 Air Inflation'
+    : s === 'spare-replacement' ? '🔧 Spare Replacement'
+    : s === 'shop-pickup' ? '🏪 Shop Coordination'
+    : s === 'lockout' ? '🔓 Lockout'
+    : s === 'jumpstart' ? '⚡ Jumpstart'
+    : s === 'fuel-delivery' ? '⛽ Fuel Delivery'
+    : s
+  );
+
   if (loading) {
     return <div className="loading">Loading jobs...</div>;
   }
@@ -153,6 +169,14 @@ const TechnicianDashboard: React.FC = () => {
         </div>
 
         <div className="dashboard-sections">
+          {/* Summary chips */}
+          <section className="jobs-section" style={{ gridColumn: '1 / -1' }}>
+            <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap' }}>
+              <span className="status-chip summary">Available: {isOnline ? availableJobs.length : 0}</span>
+              <span className="status-chip summary">Active: {activeJobs.length}</span>
+              <span className="status-chip summary">Past: {pastJobs.length}</span>
+            </div>
+          </section>
           <section className="jobs-section">
             <h2 style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'.75rem' }}>
               <span>Available Jobs {isOnline && `(${availableJobs.length})`}</span>
@@ -167,15 +191,11 @@ const TechnicianDashboard: React.FC = () => {
                 {availableJobs.map(job => (
                   <div key={job._id} className="job-card available-job">
                     <div className="job-header">
-                      <div className="service-type">
-                        {job.serviceType === 'air-inflation' && '💨 Air Inflation'}
-                        {job.serviceType === 'spare-replacement' && '🔧 Spare Replacement'}
-                        {job.serviceType === 'shop-pickup' && '🏪 Shop Coordination'}
-                      </div>
+                      <div className="service-type">{serviceLabel(job.serviceType)}</div>
                     </div>
-                    <p><strong>Location:</strong> {job.location.address}</p>
-                    <p><strong>Description:</strong> {job.description}</p>
-                    <p><strong>Customer:</strong> {job.customerId.username}</p>
+                    <p><strong>Location:</strong> {job.location?.address || 'Near provided location'}</p>
+                    {job.description && <p><strong>Description:</strong> {job.description}</p>}
+                    <p><strong>Customer:</strong> {customerName(job)}</p>
                     <button
                       onClick={() => handleClaimJob(job._id)}
                       className="btn btn-primary"
@@ -189,29 +209,47 @@ const TechnicianDashboard: React.FC = () => {
           </section>
 
           <section className="jobs-section">
-            <h2>My Jobs ({myJobs.length})</h2>
-            {myJobs.length === 0 ? (
+            <h2>Active Jobs ({activeJobs.length})</h2>
+            {activeJobs.length === 0 ? (
               <p>No active jobs.</p>
             ) : (
               <div className="jobs-list">
-                {myJobs.map(job => (
+                {activeJobs.map(job => (
                   <div key={job._id} className="job-card my-job">
                     <div className="job-header">
-                      <div className="service-type">
-                        {job.serviceType === 'air-inflation' && '💨 Air Inflation'}
-                        {job.serviceType === 'spare-replacement' && '🔧 Spare Replacement'}
-                        {job.serviceType === 'shop-pickup' && '🏪 Shop Coordination'}
-                      </div>
+                      <div className="service-type">{serviceLabel(job.serviceType)}</div>
+                      <span className="status-badge" style={{ background: job.status === 'in-progress' ? '#f39c12' : '#3498db' }}>{job.status}</span>
                     </div>
-                    <p><strong>Location:</strong> {job.location.address}</p>
-                    <p><strong>Customer:</strong> {job.customerId.username}</p>
-                    <p><strong>Status:</strong> {job.status}</p>
-                    <button 
-                      onClick={() => setSelectedJobId(job._id)}
-                      className="btn btn-primary"
-                    >
-                      View Details
-                    </button>
+                    <p><strong>Location:</strong> {job.location?.address || 'Near provided location'}</p>
+                    <p><strong>Customer:</strong> {customerName(job)}</p>
+                    <div className="job-actions">
+                      <button 
+                        onClick={() => setSelectedJobId(job._id)}
+                        className="btn btn-primary"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="jobs-section">
+            <h2>Past Jobs ({pastJobs.length})</h2>
+            {pastJobs.length === 0 ? (
+              <p>No past jobs yet.</p>
+            ) : (
+              <div className="jobs-list">
+                {pastJobs.map(job => (
+                  <div key={job._id} className="job-card" style={{ borderLeftColor: job.status === 'completed' ? '#2ecc71' : '#e74c3c' }}>
+                    <div className="job-header">
+                      <div className="service-type">{serviceLabel(job.serviceType)}</div>
+                      <span className="status-badge" style={{ background: job.status === 'completed' ? '#2ecc71' : '#e74c3c' }}>{job.status}</span>
+                    </div>
+                    <p><strong>Location:</strong> {job.location?.address || 'Near provided location'}</p>
+                    <p><strong>Customer:</strong> {customerName(job)}</p>
                   </div>
                 ))}
               </div>

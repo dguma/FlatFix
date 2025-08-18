@@ -135,6 +135,17 @@
   font-weight: 600;
 }
 
+/* Summary chips */
+.status-chip.summary {
+  background: rgba(52,152,219,0.1);
+  border: 1px solid rgba(52,152,219,0.35);
+  color: #2c3e50;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: .8rem;
+}
+
 .job-pay {
   font-weight: bold;
   color: #27ae60;
