@@ -30,23 +30,25 @@ const Header: React.FC = () => {
     <header className="header">
       <div className="container">
         <div className="left">
+          <Link to="/" className="logo" onClick={close}>
+            ⚡ ZipFix.ai
+          </Link>
+        </div>
+        <div className="right">
+          {!user && (
+            <Link
+              to="/login"
+              onClick={close}
+              className="nav-link-btn mobile-auth-btn"
+              aria-label="Sign in or create an account"
+            >Sign In / Up</Link>
+          )}
           <button aria-label="Menu" aria-expanded={open} aria-controls="primary-nav" className={`hamburger ${open ? 'is-open' : ''}`} onClick={toggle}>
             <span />
             <span />
             <span />
           </button>
-          <Link to="/" className="logo" onClick={close}>
-            ⚡ ZipFix.ai
-          </Link>
         </div>
-        {!user && (
-          <Link
-            to="/login"
-            onClick={close}
-            className="nav-link-btn mobile-auth-btn"
-            aria-label="Sign in or create an account"
-          >Sign In / Up</Link>
-        )}
         <nav id="primary-nav" className={`nav ${open ? 'open' : ''}`} role="navigation" aria-label="Primary">
           {user ? (
             <ul className="nav-items">
@@ -74,9 +76,6 @@ const Header: React.FC = () => {
                   onClick={close}
                   className={`nav-link-btn ${location.pathname.includes('dashboard') ? 'active' : ''}`}
                 >Dashboard</Link>
-              </li>
-              <li>
-                <Link to="/change-password" onClick={close} className={`nav-link-btn ${location.pathname === '/change-password' ? 'active' : ''}`}>Password</Link>
               </li>
               <li className="nav-divider" aria-hidden="true" />
               <li>
