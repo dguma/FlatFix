@@ -70,12 +70,13 @@ const Header: React.FC = () => {
                   )}
                 </div>
               </li>
+              <li className="nav-section" aria-hidden="true">Navigation</li>
               <li>
                 <Link
                   to={user.userType === 'customer' ? '/customer-dashboard' : '/technician-dashboard'}
                   onClick={close}
                   className={`nav-link-btn ${location.pathname.includes('dashboard') ? 'active' : ''}`}
-                >Dashboard</Link>
+                >My Dashboard</Link>
               </li>
               <li className="nav-divider" aria-hidden="true" />
               <li>

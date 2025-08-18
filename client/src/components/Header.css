@@ -118,6 +118,7 @@
 .nav-items li { width:100%; }
 .nav .nav-link-btn, .nav .nav-link-btn.primary, .nav .nav-link-btn.danger { width:100%; justify-content:center; }
 .nav-divider { width:100%; height:1px; background:rgba(255,255,255,0.15); margin:.75rem 0; }
+.nav-section { font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,0.55); padding:.25rem 0 .1rem; }
 .nav-user { justify-content:space-between; width:100%; }
 .status-chip { font-size:.65rem; }
 .mobile-auth-btn { width:auto; max-width:140px; white-space:nowrap; }
