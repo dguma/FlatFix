@@ -35,7 +35,8 @@ const statusUpdateSchema = {
     requestId: Joi.string().hex().length(24).required()
   }),
   body: Joi.object({
-    status: Joi.string().valid('in-progress','completed','cancelled').required()
+  status: Joi.string().valid('assigned','en-route','on-location','in-progress','completed','cancelled').required(),
+  reason: Joi.string().max(300).optional()
   })
 };
 
@@ -237,12 +238,19 @@ router.patch('/status/:requestId', authenticateToken, validate(statusUpdateSchem
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const allowedStatuses = ['in-progress', 'completed', 'cancelled'];
+  const allowedStatuses = ['assigned','en-route','on-location','in-progress','completed','cancelled'];
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
     request.status = status;
+    if (status === 'cancelled') {
+      request.cancellation = {
+        cancelledBy: req.user.userType === 'technician' ? 'technician' : (req.user.userType === 'customer' ? 'customer' : 'system'),
+        reason: req.body.reason || 'No reason provided',
+        timestamp: new Date()
+      };
+    }
     await request.save();
 
     res.json({ message: 'Status updated successfully', request });

@@ -27,7 +27,7 @@ const serviceRequestSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'assigned', 'in-progress', 'completed', 'cancelled'],
+    enum: ['pending', 'assigned', 'en-route', 'on-location', 'in-progress', 'completed', 'cancelled'],
     default: 'pending'
   },
   location: {

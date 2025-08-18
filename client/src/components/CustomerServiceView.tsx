@@ -13,7 +13,7 @@ type Pricing = { base?: number; service?: number; perUnit?: number; maxUnits?: n
 type Request = {
   _id: string;
   serviceType: string;
-  status: string;
+  status: 'pending' | 'assigned' | 'en-route' | 'on-location' | 'in-progress' | 'completed' | 'cancelled';
   description: string;
   location: { address: string; latitude?: number; longitude?: number };
   selectedShop?: Shop;
@@ -69,7 +69,7 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
         {request && (
           <div className="service-view-body">
             <div className="row"><strong>Type:</strong> <span style={{ marginLeft: 6 }}>{request.serviceType}</span></div>
-            <div className="row"><strong>Status:</strong> <span style={{ marginLeft: 6 }}>{request.status}</span></div>
+            <StatusRow status={request.status} />
             <div className="row"><strong>Location:</strong> <span style={{ marginLeft: 6 }}>{request.location?.address}</span></div>
             {request.selectedShop && (
               <div className="box" style={{ marginTop: '.5rem' }}>
@@ -116,10 +116,108 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
                 )}
               </div>
             )}
+
+            {/* Status timeline */}
+            <div className="box" style={{ marginTop: '.75rem' }}>
+              <div style={{ fontWeight:600, marginBottom:6 }}>Progress</div>
+              <ol className="timeline">
+                {['assigned','en-route','on-location','in-progress','completed'].map((st) => (
+                  <li
+                    key={st}
+                    className={`tl-item ${st} ${['assigned','en-route','on-location','in-progress','completed'].indexOf(request.status) >= ['assigned','en-route','on-location','in-progress','completed'].indexOf(st) ? 'done' : ''}`}
+                  >
+                    <span className="tl-dot" />
+                    <span className="tl-label">{st.replace('-', ' ')}</span>
+                  </li>
+                ))}
+              </ol>
+              {(request.status === 'assigned' || request.status === 'en-route' || request.status === 'on-location' || request.status === 'in-progress') && (
+                <div style={{ fontSize:'.85rem', color:'#666' }}>Your technician is currently {request.status.replace('-', ' ')}.</div>
+              )}
+            </div>
           </div>
         )}
-        <button onClick={onClose} className="btn btn-secondary">Close</button>
+        <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap', marginTop:'.75rem' }}>
+          <button onClick={onClose} className="btn btn-secondary">Close</button>
+          {request && request.status !== 'completed' && request.status !== 'cancelled' && (
+            <CancelAction requestId={request._id} onChanged={fetchServiceData} />
+          )}
+        </div>
       </div>
+    </div>
+  );
+};
+
+const CancelAction: React.FC<{ requestId: string; onChanged: () => void }> = ({ requestId, onChanged }) => {
+  const { token } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`${API_BASE || ''}/api/services/status/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'cancelled', reason })
+      });
+      if (res.ok) {
+        onChanged();
+        setOpen(false);
+      }
+    } finally { setBusy(false); }
+  };
+  return (
+    <div>
+      {!open ? (
+        <button className="btn btn-danger" onClick={() => setOpen(true)}>Cancel Request</button>
+      ) : (
+        <div className="box" style={{ display:'grid', gap:'.5rem' }}>
+          <div style={{ fontWeight:600 }}>Cancel Request</div>
+          <label style={{ fontSize:'.9rem' }}>Please tell us why the job can’t be done:</label>
+          <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="e.g., Issue resolved, schedule conflict, etc." />
+          <div style={{ display:'flex', gap:'.5rem', justifyContent:'flex-end' }}>
+            <button className="btn btn-secondary" onClick={() => setOpen(false)}>Back</button>
+            <button className="btn btn-danger" disabled={busy || reason.trim().length < 5} onClick={submit}>Confirm Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const StatusRow: React.FC<{ status: Request['status'] }> = ({ status }) => {
+  const pretty = status.replace('-', ' ');
+  const color = (
+    status === 'pending' ? '#f39c12' :
+    status === 'assigned' ? '#3498db' :
+    status === 'en-route' ? '#2d9cdb' :
+    status === 'on-location' ? '#f1c40f' :
+    status === 'in-progress' ? '#e67e22' :
+    status === 'completed' ? '#27ae60' :
+    '#7f8c8d'
+  );
+  return (
+    <div className="row">
+      <strong>Status:</strong>
+      <span style={{ marginLeft: 6 }}>
+        <span
+          className="status-pill"
+          style={{
+            background: color,
+            color: 'white',
+            padding: '2px 10px',
+            borderRadius: 999,
+            fontSize: '.8rem',
+            textTransform: 'uppercase',
+            letterSpacing: .3,
+            animation: 'pulseIn .3s ease'
+          }}
+        >
+          {pretty}
+        </span>
+      </span>
     </div>
   );
 };
