@@ -19,6 +19,8 @@ type Request = {
   selectedShop?: Shop;
   pricing?: Pricing;
   createdAt?: string;
+  technicianId?: { name?: string; badges?: string[] } | null;
+  cancellation?: { cancelledBy?: 'technician' | 'customer' | 'system'; reason?: string; timestamp?: string };
 };
 
 const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, onClose }) => {
@@ -48,6 +50,14 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
     fetchServiceData();
   }, [fetchServiceData]);
 
+  // Live status updates: poll while modal is open
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetchServiceData();
+    }, 5000);
+    return () => clearInterval(id);
+  }, [fetchServiceData]);
+
   if (loading) {
     return (
       <div className="service-view-modal">
@@ -65,74 +75,98 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
           <h2>Service Request Details</h2>
           <button onClick={onClose} className="close-btn">✕</button>
         </div>
-        {error && <div className="error-message" style={{ marginBottom: '.5rem' }}>{error}</div>}
+        {error && <div className="error-message" style={{ margin: '12px 16px' }}>{error}</div>}
         {request && (
-          <div className="service-view-body">
-            <div className="row"><strong>Type:</strong> <span style={{ marginLeft: 6 }}>{request.serviceType}</span></div>
-            <StatusRow status={request.status} />
-            <div className="row"><strong>Location:</strong> <span style={{ marginLeft: 6 }}>{request.location?.address}</span></div>
-            {request.selectedShop && (
-              <div className="box" style={{ marginTop: '.5rem' }}>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>Selected Shop</div>
-                <div>{request.selectedShop.name}</div>
-                <div style={{ fontSize: '.9rem', opacity: .8 }}>{request.selectedShop.address} • {request.selectedShop.phone}</div>
-                {typeof request.selectedShop.distanceMiles === 'number' && (
-                  <div style={{ fontSize: '.85rem', marginTop: 4 }}>~{request.selectedShop.distanceMiles.toFixed(1)} mi one-way</div>
-                )}
-              </div>
-            )}
+          <div className="service-overview">
+            {/* Summary chips */}
+            <div className="summary">
+              <div className="chip"><span>Type</span><strong style={{ textTransform:'capitalize' }}>{request.serviceType.replace('-', ' ')}</strong></div>
+              <div className="chip"><span>Status</span><StatusRow status={request.status} /></div>
+              <div className="chip"><span>Requested</span><strong>{new Date(request.createdAt || Date.now()).toLocaleString()}</strong></div>
+            </div>
 
-            {request.pricing && (
-              <div className="box" style={{ marginTop: '.75rem' }}>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>Pricing</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  {typeof request.pricing.base === 'number' && (
-                    <li>$ {request.pricing.base.toFixed(2)} base</li>
-                  )}
-                  {typeof request.pricing.service === 'number' && request.pricing.service > 0 && (
-                    <li>$ {request.pricing.service.toFixed(2)} labor</li>
-                  )}
-                  {typeof request.pricing.perMile === 'number' && typeof request.pricing.estimatedMiles === 'number' && (
-                    <li>$ {request.pricing.perMile.toFixed(2)}/mi × {request.pricing.estimatedMiles.toFixed(1)} mi</li>
-                  )}
-                  {typeof request.pricing.perUnit === 'number' && typeof request.pricing.maxUnits === 'number' && (
-                    <li>$ {request.pricing.perUnit.toFixed(2)}/unit (max {request.pricing.maxUnits})</li>
-                  )}
-                </ul>
-                {typeof request.pricing.estimate === 'number' && (
-                  <div style={{ marginTop: '.35rem' }}>
-                    Estimated total: <strong>$ {request.pricing.estimate.toFixed(2)}</strong>
-                  </div>
-                )}
-                {request.serviceType === 'jumpstart' && (
-                  <div style={{ fontSize: '.8rem', color: '#666', marginTop: '.25rem' }}>
-                    First jump included in $20 base. Up to 2 extra attempts at $12.50 each; capped at $45 total.
-                  </div>
-                )}
-                {request.serviceType === 'shop-pickup' && (
-                  <div style={{ fontSize: '.85rem', color: '#666', marginTop: '.25rem' }}>
-                    Note: Tire cost is paid directly to the shop. This estimate covers technician labor and distance only.
-                  </div>
-                )}
+            {/* Info grid */}
+            <div className="info-grid">
+              <div className="section-card">
+                <h3>Location</h3>
+                <p style={{ margin:0 }}>{request.location?.address}</p>
               </div>
-            )}
 
-            {/* Status timeline */}
-            <div className="box" style={{ marginTop: '.75rem' }}>
-              <div style={{ fontWeight:600, marginBottom:6 }}>Progress</div>
+              {request.selectedShop && (
+                <div className="section-card">
+                  <h3>Selected Shop</h3>
+                  <div style={{ fontWeight: 600 }}>{request.selectedShop.name}</div>
+                  <div style={{ fontSize: '.9rem', opacity: .8 }}>{request.selectedShop.address} • {request.selectedShop.phone}</div>
+                  {typeof request.selectedShop.distanceMiles === 'number' && (
+                    <div style={{ fontSize: '.85rem', marginTop: 4 }}>~{request.selectedShop.distanceMiles.toFixed(1)} mi one-way</div>
+                  )}
+                  {request.serviceType === 'shop-pickup' && (
+                    <div style={{ fontSize: '.85rem', color: '#666', marginTop: '.5rem' }}>
+                      Tire payment is made directly to the shop; ZipFix covers technician labor and distance only.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {request.pricing && (
+                <div className="section-card">
+                  <h3>Pricing</h3>
+                  <ul className="price-list">
+                    {typeof request.pricing.base === 'number' && (
+                      <li><span>Base</span><strong>$ {request.pricing.base.toFixed(2)}</strong></li>
+                    )}
+                    {typeof request.pricing.service === 'number' && request.pricing.service > 0 && (
+                      <li><span>Labor</span><strong>$ {request.pricing.service.toFixed(2)}</strong></li>
+                    )}
+                    {typeof request.pricing.perMile === 'number' && typeof request.pricing.estimatedMiles === 'number' && (
+                      <li><span>Distance</span><strong>$ {request.pricing.perMile.toFixed(2)}/mi × {request.pricing.estimatedMiles.toFixed(1)} mi</strong></li>
+                    )}
+                    {typeof request.pricing.perUnit === 'number' && typeof request.pricing.maxUnits === 'number' && (
+                      <li><span>Units</span><strong>$ {request.pricing.perUnit.toFixed(2)}/unit (max {request.pricing.maxUnits})</strong></li>
+                    )}
+                  </ul>
+                  {typeof request.pricing.estimate === 'number' && (
+                    <div className="price-estimate">Estimated total <strong>$ {request.pricing.estimate.toFixed(2)}</strong></div>
+                  )}
+                  {request.serviceType === 'jumpstart' && (
+                    <div style={{ fontSize: '.85rem', color: '#666', marginTop: '.35rem' }}>
+                      First jump included in $20 base. Up to 2 extra attempts at $12.50 each; capped at $45 total.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {request.technicianId && (
+                <div className="section-card">
+                  <h3>Assigned Technician</h3>
+                  <div style={{ fontWeight:600 }}>{request.technicianId?.name || 'Technician'}</div>
+                  {Array.isArray(request.technicianId?.badges) && request.technicianId!.badges!.length > 0 && (
+                    <div style={{ marginTop: '.25rem', fontSize: '.85rem', opacity:.8 }}>
+                      Badges: {request.technicianId!.badges!.join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Progress timeline */}
+            <div className="section-card progress-card">
+              <h3>Progress</h3>
               <ol className="timeline">
                 {['assigned','en-route','on-location','in-progress','completed'].map((st) => (
-                  <li
-                    key={st}
-                    className={`tl-item ${st} ${['assigned','en-route','on-location','in-progress','completed'].indexOf(request.status) >= ['assigned','en-route','on-location','in-progress','completed'].indexOf(st) ? 'done' : ''}`}
-                  >
+                  <li key={st} className={`tl-item ${st} ${['assigned','en-route','on-location','in-progress','completed'].indexOf(request.status) >= ['assigned','en-route','on-location','in-progress','completed'].indexOf(st) ? 'done' : ''}`}>
                     <span className="tl-dot" />
                     <span className="tl-label">{st.replace('-', ' ')}</span>
                   </li>
                 ))}
               </ol>
               {(request.status === 'assigned' || request.status === 'en-route' || request.status === 'on-location' || request.status === 'in-progress') && (
-                <div style={{ fontSize:'.85rem', color:'#666' }}>Your technician is currently {request.status.replace('-', ' ')}.</div>
+                <div style={{ fontSize:'.9rem', color:'#495057', marginTop:'.25rem' }}>Your technician is currently <strong>{request.status.replace('-', ' ')}</strong>.</div>
+              )}
+              {request.status === 'cancelled' && (
+                <div style={{ fontSize:'.9rem', color:'#a94442', marginTop:'.25rem' }}>
+                  Cancelled by {request.cancellation?.cancelledBy || 'system'} — {request.cancellation?.reason || 'No reason provided'}
+                </div>
               )}
             </div>
           </div>
