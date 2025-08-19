@@ -4,7 +4,8 @@
   { "src": "package.json", "use": "@vercel/static-build", "config": { "outputDirectory": "client/dist" } }
   ],
   "routes": [
-  { "src": "/api/(.*)", "dest": "https://zipfix.onrender.com/api/$1" },
-  { "src": "/(.*)", "dest": "/client/dist/$1" }
+  { "src": "/api/(.*)", "dest": "https://flatfix.onrender.com/api/$1" },
+  { "handle": "filesystem" },
+  { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
