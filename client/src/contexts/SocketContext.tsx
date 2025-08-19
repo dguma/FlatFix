@@ -19,6 +19,7 @@ export function SocketProvider({ children }: PropsWithChildren<{}>) {
     try {
       if (API_BASE) {
         const u = new URL(API_BASE);
+        // Connect sockets directly to backend origin
         url = `${u.protocol}//${u.host}`;
       }
     } catch {}
