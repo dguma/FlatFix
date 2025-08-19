@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import JobDetails from '../components/JobDetails';
 import './Dashboard.css';
 import { API_BASE } from '../config';
+import { getCachedJson, usePageVisible } from '../utils/net';
 
 interface ServiceRequest {
   _id: string;
@@ -27,19 +28,16 @@ const TechnicianDashboard: React.FC = () => {
   const [newAvailDiff, setNewAvailDiff] = useState(0);
   const prevAvailRef = useRef(0);
   const prevActiveRef = useRef(0);
+  const pageVisible = usePageVisible();
 
   const fetchAvailableJobs = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE || ''}/api/services/available`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const data = await getCachedJson(`${API_BASE || ''}/api/services/available`, {
+        ttlMs: 8000,
+        keyExtra: token || '',
+        init: { headers: { Authorization: `Bearer ${token}` } }
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableJobs(data);
-      }
+      if (Array.isArray(data)) setAvailableJobs(data);
     } catch (error) {
       console.error('Failed to fetch available jobs:', error);
     }
@@ -47,16 +45,12 @@ const TechnicianDashboard: React.FC = () => {
 
   const fetchMyJobs = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE || ''}/api/services/my-jobs`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const data = await getCachedJson(`${API_BASE || ''}/api/services/my-jobs`, {
+        ttlMs: 8000,
+        keyExtra: token || '',
+        init: { headers: { Authorization: `Bearer ${token}` } }
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMyJobs(data);
-      }
+      if (Array.isArray(data)) setMyJobs(data);
     } catch (error) {
       console.error('Failed to fetch my jobs:', error);
     } finally {
@@ -98,6 +92,7 @@ const TechnicianDashboard: React.FC = () => {
     if (pollRef.current) window.clearInterval(pollRef.current);
     // Only poll if online or has active jobs
     const runner = async () => {
+      if (!pageVisible) return; // avoid polling in background
       if (isOnline) {
         const before = prevAvailRef.current;
         await fetchAvailableJobs();
@@ -119,7 +114,7 @@ const TechnicianDashboard: React.FC = () => {
     runner();
     pollRef.current = window.setInterval(runner, 10000); // 10s cadence
     return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
-  }, [isOnline, fetchAvailableJobs, fetchMyJobs, availableJobs.length, myJobs, myJobs.length]);
+  }, [isOnline, fetchAvailableJobs, fetchMyJobs, availableJobs.length, myJobs, myJobs.length, pageVisible]);
 
   const handleToggleAvailability = async () => {
     const prev = isOnline;

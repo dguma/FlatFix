@@ -3,33 +3,30 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { API_BASE } from '../config';
 import './Home.css';
+import { getCachedJson, usePageVisible } from '../utils/net';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
   const [onlineTechs, setOnlineTechs] = useState<number | null>(null);
+  const pageVisible = usePageVisible();
 
   const fetchCount = async () => {
     try {
-      const res = await fetch(`${API_BASE || ''}/api/profile/technicians/online-count`);
-      if (res.ok) {
-        const data = await res.json();
-        setOnlineTechs(data.onlineTechnicians);
-      }
+      const data = await getCachedJson(`${API_BASE || ''}/api/profile/technicians/online-count`, { ttlMs: 30000 });
+      if (data && typeof data.onlineTechnicians === 'number') setOnlineTechs(data.onlineTechnicians);
     } catch {}
   };
 
   useEffect(() => {
     let cancelled = false;
-    const wrapped = async () => { if (!cancelled) await fetchCount(); };
+    const wrapped = async () => { if (!cancelled && pageVisible) await fetchCount(); };
     wrapped();
-    const id = setInterval(wrapped, 15000);
+    const id = setInterval(wrapped, 20000);
     return () => { cancelled = true; clearInterval(id); };
-  }, []);
+  }, [pageVisible]);
 
   // When user's availability changes (technician toggles) refresh count quickly
-  useEffect(() => {
-    fetchCount();
-  }, [user?.isAvailable]);
+  useEffect(() => { fetchCount(); }, [user?.isAvailable]);
 
   const PIXABAY = 'https://cdn.pixabay.com/photo/2015/05/31/12/08/reparing-791413_1280.jpg';
   const UNSPLASH_FALLBACK = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=60';

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import CustomerServiceView from '../components/CustomerServiceView';
 import { API_BASE } from '../config';
 import './Dashboard.css';
+import { getCachedJson, usePageVisible } from '../utils/net';
 
 interface ServiceRequest {
   _id: string;
@@ -19,19 +20,16 @@ const CustomerDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const { token } = useAuth();
+  const pageVisible = usePageVisible();
 
   const fetchMyRequests = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE || ''}/api/services/my-requests`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const data = await getCachedJson(`${API_BASE || ''}/api/services/my-requests`, {
+        ttlMs: 8000,
+        keyExtra: token || '',
+        init: { headers: { 'Authorization': `Bearer ${token}` } }
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setRequests(data);
-      }
+      if (Array.isArray(data)) setRequests(data);
     } catch (error) {
       console.error('Failed to fetch requests:', error);
     } finally {
@@ -45,10 +43,11 @@ const CustomerDashboard: React.FC = () => {
   const pollRef = useRef<number | null>(null);
   useEffect(() => {
     if (pollRef.current) window.clearInterval(pollRef.current);
+    if (!pageVisible) return; // no polling when tab hidden
     const runner = () => fetchMyRequests();
     pollRef.current = window.setInterval(runner, 12000); // 12s cadence
     return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
-  }, [fetchMyRequests]);
+  }, [fetchMyRequests, pageVisible]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
