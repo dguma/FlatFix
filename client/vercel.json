@@ -1,9 +1,0 @@
-{
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://flatfix.onrender.com/api/$1"
-    }
-  ]
-}
