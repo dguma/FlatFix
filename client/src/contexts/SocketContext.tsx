@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, PropsWithChildren } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_BASE } from '../config';
 
@@ -9,7 +9,7 @@ interface SocketContextType {
 
 const defaultValue: SocketContextType = { socket: null, isConnected: false };
 const SocketContext = createContext<SocketContextType>(defaultValue);
-export const SocketProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+export function SocketProvider({ children }: PropsWithChildren<{}>) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -58,8 +58,8 @@ export const SocketProvider: React.FC<{ children?: React.ReactNode }> = ({ child
   }, []);
 
   const value = useMemo<SocketContextType>(() => ({ socket, isConnected }), [socket, isConnected]);
-  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
-};
+  return React.createElement(SocketContext.Provider, { value }, children as React.ReactNode);
+}
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
