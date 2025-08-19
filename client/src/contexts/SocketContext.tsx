@@ -14,7 +14,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Prefer API_BASE origin if defined; else use current origin
+  // Prefer API_BASE origin if defined; else use current origin
     let url: string | undefined;
     try {
       if (API_BASE) {
@@ -26,7 +26,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       url = `${window.location.protocol}//${window.location.host}`;
     }
 
-    const s = io(url || '', {
+  const s = io(url || '', {
       autoConnect: true,
       transports: ['websocket'],
       withCredentials: true

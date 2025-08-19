@@ -7,4 +7,5 @@ const fromEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env?
 	|| (process.env.REACT_APP_API_URL || '')).replace(/\/$/, '');
 const isDev = (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'development')
 	|| process.env.NODE_ENV === 'development';
-export const API_BASE = fromEnv || (isDev ? 'http://localhost:5000' : '');
+// In production default to the Render backend if no env provided
+export const API_BASE = fromEnv || (isDev ? 'http://localhost:5000' : 'https://flatfix.onrender.com');
