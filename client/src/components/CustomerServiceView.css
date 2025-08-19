@@ -21,10 +21,42 @@
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* momentum on iOS */
+  overscroll-behavior: contain; /* prevent scroll chaining to page */
+  scroll-behavior: smooth;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   position: relative;
   animation: slideUp 0.3s ease-out;
 }
+
+/* Soft gradient fades at top/bottom while scrollable */
+.service-view-content::before,
+.service-view-content::after {
+  content: "";
+  position: sticky;
+  left: 0;
+  right: 0;
+  height: 18px;
+  pointer-events: none;
+  z-index: 2;
+  display: block;
+}
+.service-view-content::before {
+  top: 0;
+  margin-top: -1px; /* keep inside border radius */
+  background: linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0));
+  opacity: 1;
+  transition: opacity .2s ease;
+}
+.service-view-content::after {
+  bottom: 0;
+  margin-bottom: -1px;
+  background: linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0));
+  opacity: 1;
+  transition: opacity .2s ease;
+}
+.service-view-content.at-top::before { opacity: 0; }
+.service-view-content.at-bottom::after { opacity: 0; }
 
 @keyframes slideUp {
   from {
@@ -38,13 +70,18 @@
 }
 
 .service-view-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: linear-gradient(135deg, rgba(102,126,234,0.97) 0%, rgba(118,75,162,0.97) 100%);
+  backdrop-filter: saturate(1.1) blur(6px);
   color: white;
-  padding: 20px;
+  padding: 16px 20px;
   border-radius: 16px 16px 0 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.08);
 }
 
 .service-view-header h2 {
@@ -70,6 +107,12 @@
 
 .close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Subtle focus ring for accessibility */
+.close-btn:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.9);
+  outline-offset: 2px;
 }
 
 .service-overview {
@@ -530,6 +573,22 @@
 
 .timeline .tl-dot { transition: background-color .25s ease; }
 .timeline .tl-label { transition: opacity .25s ease; }
+
+/* Custom scrollbars (WebKit/Blink) */
+.service-view-content::-webkit-scrollbar {
+  width: 10px;
+}
+.service-view-content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 0 16px 16px 0;
+}
+.service-view-content::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+  border-radius: 8px;
+}
+.service-view-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.25);
+}
 
 /* Mobile responsive */
 @media (max-width: 768px) {

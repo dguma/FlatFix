@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './CustomerServiceView.css';
 import { API_BASE } from '../config';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,11 +29,24 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
   const [error, setError] = useState<string | null>(null);
   const [request, setRequest] = useState<Request | null>(null);
   const { token } = useAuth();
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
+
+  // Scroll container ref for polished scrolling effects
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  // Prevent flicker and duplicate fetches
+  const initialLoadedRef = useRef(false);
+  const fetchingRef = useRef(false);
+  const lastRefreshRef = useRef(0);
 
   const fetchServiceData = useCallback(async () => {
+    if (fetchingRef.current) return; // avoid overlapping
+    fetchingRef.current = true;
+    const now = Date.now();
+    lastRefreshRef.current = now;
     try {
-      setLoading(true);
+      // Only show loading UI on first load
+      if (!initialLoadedRef.current) setLoading(true);
       setError(null);
       const res = await fetch(`${API_BASE || ''}/api/services/${requestId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -41,10 +54,12 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
       if (!res.ok) throw new Error('Failed to load');
       const data = await res.json();
       setRequest(data);
+      if (!initialLoadedRef.current) initialLoadedRef.current = true;
     } catch (e: any) {
       setError(e?.message || 'Failed to load');
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
   }, [requestId, token]);
 
@@ -52,23 +67,49 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
     fetchServiceData();
   }, [fetchServiceData]);
 
-  // Live status updates: poll while modal is open
+  // Lock background page scroll while modal is open
   useEffect(() => {
-    const id = setInterval(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  // Manage gradient fades (top/bottom) based on scroll position
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const update = () => {
+      const atTop = el.scrollTop <= 2;
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 2;
+      el.classList.toggle('at-top', atTop);
+      el.classList.toggle('at-bottom', atBottom);
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    return () => el.removeEventListener('scroll', update);
+  }, []);
+
+  // Live status updates: poll only when socket is not connected
+  useEffect(() => {
+    if (isConnected) return; // socket will push updates
+    const id = window.setInterval(() => {
       fetchServiceData();
-    }, 5000);
-    return () => clearInterval(id);
-  }, [fetchServiceData]);
+    }, 12000); // align with dashboard cadence
+    return () => window.clearInterval(id);
+  }, [isConnected, fetchServiceData]);
 
   // Real-time updates via WebSocket
   useEffect(() => {
     if (!socket) return;
-    const onCreated = (payload: any) => {
-      if (payload?.request?._id === requestId) fetchServiceData();
+    const scheduleRefresh = (payload: any) => {
+      if (payload?.request?._id !== requestId) return;
+      const now = Date.now();
+      // Debounce rapid updates within 1.5s
+      if (now - lastRefreshRef.current < 1500) return;
+      fetchServiceData();
     };
-    const onUpdated = (payload: any) => {
-      if (payload?.request?._id === requestId) fetchServiceData();
-    };
+    const onCreated = (payload: any) => scheduleRefresh(payload);
+    const onUpdated = (payload: any) => scheduleRefresh(payload);
     socket.on('service:created', onCreated);
     socket.on('service:updated', onUpdated);
     return () => {
@@ -89,7 +130,7 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
 
   return (
     <div className="service-view-modal">
-      <div className="service-view-content">
+      <div className="service-view-content" ref={contentRef}>
         <div className="service-view-header">
           <h2>Service Request Details</h2>
           <button onClick={onClose} className="close-btn">✕</button>
