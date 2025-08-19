@@ -371,6 +371,27 @@
   background: #c0392b;
 }
 
+/* Timeline (tech view) */
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tl-item { display:flex; align-items:center; gap:6px; color:#6c757d; font-size:.85rem; }
+.tl-item .tl-dot { width:10px; height:10px; border-radius:50%; background:#dee2e6; display:inline-block; }
+.tl-item.done .tl-dot { background:#28a745; }
+.tl-item.assigned.done .tl-dot { background:#17a2b8; }
+.tl-item[class*="en-route"].done .tl-dot { background:#007bff; }
+.tl-item[class*="on-location"].done .tl-dot { background:#ffc107; }
+.tl-item[class*="in-progress"].done .tl-dot { background:#fd7e14; }
+.tl-item[class*="completed"].done .tl-dot { background:#28a745; }
+.tl-label { opacity:.9; }
+.timeline .tl-dot { transition: background-color .25s ease; }
+.timeline .tl-label { transition: opacity .25s ease; }
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .job-details-modal {
