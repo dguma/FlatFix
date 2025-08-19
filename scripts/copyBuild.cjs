@@ -1,10 +1,10 @@
-// Cross-platform copy of CRA build output into root /build for Vercel static-build
+// Copy Vite build output (client/dist) into root /build for static deployment
 // Ensures old build is removed first
 const fs = require('fs');
 const path = require('path');
 
 const root = process.cwd();
-const srcDir = path.join(root, 'client', 'build');
+const srcDir = path.join(root, 'client', 'dist');
 const destDir = path.join(root, 'build');
 
 function rimraf(target) {

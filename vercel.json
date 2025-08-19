@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builds": [
-    { "src": "package.json", "use": "@vercel/static-build" }
+  { "src": "package.json", "use": "@vercel/static-build", "config": { "outputDirectory": "build" } }
   ],
   "routes": [
   { "src": "/api/(.*)", "dest": "https://zipfix.onrender.com/api/$1" },

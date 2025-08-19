@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly REACT_APP_GOOGLE_MAPS_KEY?: string;
 }
 
+interface ImportMeta { env: ImportMetaEnv }
+
 declare namespace NodeJS {
   interface ProcessEnv extends ImportMetaEnv {}
   interface Process { env: ProcessEnv }
