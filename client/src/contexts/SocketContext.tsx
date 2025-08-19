@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_BASE } from '../config';
 
@@ -7,9 +7,9 @@ interface SocketContextType {
   isConnected: boolean;
 }
 
-const SocketContext = createContext<SocketContextType | undefined>(undefined);
-
-export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+const defaultValue: SocketContextType = { socket: null, isConnected: false };
+const SocketContext = createContext<SocketContextType>(defaultValue);
+export const SocketProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -26,19 +26,33 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       url = `${window.location.protocol}//${window.location.host}`;
     }
 
-  const s = io(url || '', {
+    const s = io(url || '', {
+      path: '/socket.io',
       autoConnect: true,
-      transports: ['websocket'],
-      withCredentials: true
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
+      withCredentials: true,
     });
     setSocket(s);
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
     s.on('connect', onConnect);
     s.on('disconnect', onDisconnect);
+    s.on('connect_error', (err) => {
+      console.warn('Socket connect_error:', err?.message || err);
+    });
+    s.on('error', (err) => {
+      console.warn('Socket error:', err);
+    });
     return () => {
       s.off('connect', onConnect);
       s.off('disconnect', onDisconnect);
+      s.off('connect_error');
+      s.off('error');
       s.close();
     };
   }, []);
@@ -49,8 +63,5 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
-  if (context === undefined) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
   return context;
 };
