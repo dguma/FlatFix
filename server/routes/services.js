@@ -117,6 +117,12 @@ router.post('/request', authenticateToken, validate(createRequestSchema), async 
 
     await serviceRequest.save();
 
+    // emit creation event to customers/techs listeners
+    try {
+      const io = req.app.get('io');
+      if (io) io.emit('service:created', { request: serviceRequest });
+    } catch {}
+
     res.status(201).json({
       message: 'Service request created successfully',
       request: serviceRequest
@@ -252,6 +258,12 @@ router.patch('/status/:requestId', authenticateToken, validate(statusUpdateSchem
       };
     }
     await request.save();
+
+    // Emit status update
+    try {
+      const io = req.app.get('io');
+      if (io) io.emit('service:updated', { request });
+    } catch {}
 
     res.json({ message: 'Status updated successfully', request });
   } catch (error) {

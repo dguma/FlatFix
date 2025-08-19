@@ -7,6 +7,15 @@ const winston = require('winston');
 require('dotenv').config();
 
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: {
+    origin: (origin, cb) => cb(null, true),
+    credentials: true
+  }
+});
 
 // Winston logger setup
 const logger = winston.createLogger({
@@ -157,6 +166,14 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+io.on('connection', (socket) => {
+  logger.info({ msg: 'ws:connect', id: socket.id });
+  socket.on('disconnect', () => logger.info({ msg: 'ws:disconnect', id: socket.id }));
+});
+
+server.listen(PORT, () => {
   logger.info({ msg: 'server:start', port: PORT });
 });
+
+// expose io for routes to emit
+app.set('io', io);

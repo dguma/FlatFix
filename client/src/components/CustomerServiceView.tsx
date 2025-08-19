@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './CustomerServiceView.css';
 import { API_BASE } from '../config';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 
 interface CustomerServiceViewProps {
   requestId: string;
@@ -28,6 +29,7 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
   const [error, setError] = useState<string | null>(null);
   const [request, setRequest] = useState<Request | null>(null);
   const { token } = useAuth();
+  const { socket } = useSocket();
 
   const fetchServiceData = useCallback(async () => {
     try {
@@ -57,6 +59,23 @@ const CustomerServiceView: React.FC<CustomerServiceViewProps> = ({ requestId, on
     }, 5000);
     return () => clearInterval(id);
   }, [fetchServiceData]);
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    if (!socket) return;
+    const onCreated = (payload: any) => {
+      if (payload?.request?._id === requestId) fetchServiceData();
+    };
+    const onUpdated = (payload: any) => {
+      if (payload?.request?._id === requestId) fetchServiceData();
+    };
+    socket.on('service:created', onCreated);
+    socket.on('service:updated', onUpdated);
+    return () => {
+      socket.off('service:created', onCreated);
+      socket.off('service:updated', onUpdated);
+    };
+  }, [socket, requestId, fetchServiceData]);
 
   if (loading) {
     return (
